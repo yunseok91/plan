@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>도쿄 통합 플래너 :: 🏨 렘 롯폰기</title>
+    <title>도쿄 커플 플래너 :: 실시간 연동 🏠</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -11,58 +11,47 @@
         :root { --primary-color: #007bff; --bg-light: #f4f7f6; }
         body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); padding-bottom: 50px; }
         .card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        #map { height: 400px; width: 100%; border-radius: 20px; }
-        
-        .nav-pills .nav-link { border-radius: 50px; margin: 0 5px; border: 1px solid #ddd; color: #555; background: #fff; transition: 0.3s; }
-        .nav-pills .nav-link.active { background-color: var(--primary-color) !important; color: white !important; box-shadow: 0 4px 10px rgba(0,123,255,0.3); }
-        
+        #map { height: 350px; width: 100%; border-radius: 20px; }
+        .nav-pills .nav-link { border-radius: 50px; margin: 0 5px; border: 1px solid #ddd; color: #555; background: #fff; }
+        .nav-pills .nav-link.active { background-color: var(--primary-color) !important; color: white !important; }
         .fixed-item { background-color: #e7f1ff; border-left: 5px solid #007bff; border-radius: 10px; margin-bottom: 10px; }
-        .place-row { padding: 12px 15px; align-items: center; border-bottom: 1px solid #eee; transition: 0.2s; }
-        .place-row:hover { background-color: #fcfcfc; }
-        
+        .place-row { padding: 12px 15px; align-items: center; border-bottom: 1px solid #eee; }
         .type-badge { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; margin-right: 8px; font-weight: 700; display: inline-block; min-width: 50px; text-align: center; }
         .bg-morning { background-color: #fff3bf; color: #f08c00; }
         .bg-lunch { background-color: #d3f9d8; color: #2b8a3e; }
         .bg-dinner { background-color: #ffd8a8; color: #e67700; }
-        .bg-etc { background-color: #f1f3f5; color: #495057; }
         .bg-spot { background-color: #e7f1ff; color: #007bff; }
-
+        .bg-etc { background-color: #f1f3f5; color: #495057; }
         .total-box { font-size: 1.8rem; font-weight: 700; color: var(--primary-color); text-align: center; margin-top: 30px; border-top: 2px solid #dee2e6; padding-top: 20px; }
-        
-        /* 호텔 마커 전용 스타일 */
-        .hotel-marker { background: #007bff; color: white; padding: 8px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(0,0,0,0.2); font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        .hotel-marker { background: #007bff; color: white; padding: 8px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px rgba(0,0,0,0.2); font-size: 20px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; }
     </style>
 </head>
 <body>
 
 <div class="container py-4">
-    <h1 class="text-center fw-bold mb-4">🗼 도쿄 여행 플래너 (4/8 - 4/12)</h1>
+    <h1 class="text-center fw-bold mb-4">🗼 도쿄 실시간 플래너</h1>
 
-    <div class="card position-relative overflow-hidden mb-4">
-        <div id="map"></div>
-    </div>
+    <div class="card position-relative overflow-hidden mb-4"><div id="map"></div></div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
             <div class="card p-3 h-100 text-center">
                 <label class="fw-bold mb-2 small text-muted">현재 환율 (100엔당)</label>
                 <div class="input-group">
-                    <input type="number" id="global-rate" class="form-control text-center fw-bold" value="945" oninput="saveOnly(); updateGrandTotal(); updateAllRowTexts();">
+                    <input type="number" id="global-rate" class="form-control text-center fw-bold" value="945" oninput="updateRate(this.value)">
                     <span class="input-group-text">원</span>
                 </div>
             </div>
         </div>
         <div class="col-md-8">
             <div class="card p-3 h-100">
-                <label class="fw-bold mb-2 small text-muted">항목 직접 추가 (편의점/식비 등)</label>
+                <label class="fw-bold mb-2 small text-muted">항목 직접 추가</label>
                 <div class="input-group">
                     <select id="manual-type" class="form-select" style="max-width: 100px;">
-                        <option value="아침">아침</option>
-                        <option value="점심" selected>점심</option>
-                        <option value="저녁">저녁</option>
-                        <option value="기타">기타</option>
+                        <option value="아침">아침</option><option value="점심" selected>점심</option>
+                        <option value="저녁">저녁</option><option value="기타">기타</option>
                     </select>
-                    <input type="text" id="manual-name" class="form-control" placeholder="항목 입력 (예: 세븐일레븐)">
+                    <input type="text" id="manual-name" class="form-control" placeholder="이름 입력">
                     <button class="btn btn-primary" onclick="addManualItem()">추가</button>
                 </div>
             </div>
@@ -70,7 +59,7 @@
     </div>
 
     <div class="card p-3 mb-4">
-        <input id="pac-input" class="form-control" type="text" placeholder="📍 가고 싶은 장소 검색 (예: 시부야 스카이)">
+        <input id="pac-input" class="form-control" type="text" placeholder="📍 장소 검색하여 추가">
     </div>
 
     <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab">
@@ -86,213 +75,145 @@
         <div id="expense-list-container"></div>
     </div>
 
-    <div class="total-box">💰 예상 총 경비: <span id="grand-total">0</span> 원</div>
+    <div class="total-box">💰 실시간 합계: <span id="grand-total">0</span> 원</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
 
-<script>
-    let map, AdvancedMarkerElement, PinElement;
-    let markers = [];
-    let currentDay = 'day1';
-    
-    const FIXED_TOTAL_KRW = 534880 + 1000000;
+    const firebaseConfig = {
+        apiKey: "AIzaSyCkLbv-FsYOsJGSUnINUNZiTDJAGz-L5Rg",
+        authDomain: "serious-azimuth-288802.firebaseapp.com",
+        databaseURL: "https://serious-azimuth-288802-default-rtdb.firebaseio.com",
+        projectId: "serious-azimuth-288802",
+        storageBucket: "serious-azimuth-288802.firebasestorage.app",
+        messagingSenderId: "306132751951",
+        appId: "1:306132751951:web:430e28d3bca9ed614c3c3a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const dbRef = ref(db, 'tokyo_trip');
+
+    window.currentDay = 'day1';
+    window.tripData = { rate: 945, days: { day1: {}, day2: {}, day3: {}, day4: {}, day5: {} } };
+    window.markers = [];
+    let map, AdvancedMarkerElement;
+
+    const FIXED_KRW = 534880 + 1000000;
     const HOTEL_COORDS = { lat: 35.6637, lng: 139.7313 };
-
     const AUTO_SCHEDULE = {
-        day1: [{ name: "✈️ 출국 비행기 (07:10 ~ 09:45)" }, { name: "🏨 렘 롯폰기 체크인 (14:00)" }],
-        day2: [{ name: "🏨 숙박 (렘 롯폰기)" }],
-        day3: [{ name: "🏨 숙박 (렘 롯폰기)" }],
-        day4: [{ name: "🏨 숙박 (렘 롯폰기)" }],
-        day5: [{ name: "🏨 렘 롯폰기 체크아웃 (12:00)" }, { name: "✈️ 귀국 비행기 (11:40 ~ 14:30)" }]
+        day1: ["✈️ 출국 비행기 (07:10 ~ 09:45)", "🏨 렘 롯폰기 체크인 (14:00)"],
+        day2: ["🏨 숙박 (렘 롯폰기)"], day3: ["🏨 숙박 (렘 롯폰기)"], day4: ["🏨 숙박 (렘 롯폰기)"],
+        day5: ["🏨 렘 롯폰기 체크아웃 (12:00)", "✈️ 귀국 비행기 (11:40 ~ 14:30)"]
     };
 
-    let tripData = JSON.parse(localStorage.getItem('tokyo_comprehensive_final_v3')) || {
-        rate: 945,
-        day1: [], day2: [], day3: [], day4: [], day5: []
-    };
+    // 데이터베이스 실시간 감시
+    onValue(dbRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            window.tripData = data;
+            document.getElementById('global-rate').value = data.rate;
+            renderList();
+        } else {
+            // 초기 데이터 세팅
+            set(dbRef, window.tripData);
+        }
+    });
 
-    async function initMap() {
-        const mapsLib = await google.maps.importLibrary("maps");
-        const placesLib = await google.maps.importLibrary("places");
+    window.initMap = async () => {
+        const { Map } = await google.maps.importLibrary("maps");
+        const { Autocomplete } = await google.maps.importLibrary("places");
         const markerLib = await google.maps.importLibrary("marker");
-        
         AdvancedMarkerElement = markerLib.AdvancedMarkerElement;
-        PinElement = markerLib.PinElement;
 
-        map = new mapsLib.Map(document.getElementById("map"), {
-            center: HOTEL_COORDS,
-            zoom: 13,
-            mapId: "TOKYO_TRIP_MAP_ID"
-        });
-
-        const input = document.getElementById("pac-input");
-        const autocomplete = new placesLib.Autocomplete(input);
-        autocomplete.bindTo("bounds", map);
-
+        map = new Map(document.getElementById("map"), { center: HOTEL_COORDS, zoom: 14, mapId: "TOKYO_V5" });
+        const autocomplete = new Autocomplete(document.getElementById("pac-input"));
+        
         autocomplete.addListener("place_changed", () => {
             const place = autocomplete.getPlace();
             if (!place.geometry) return;
-
-            const newItem = {
-                id: Date.now(),
-                name: place.name,
-                type: "장소",
-                jpy: 0,
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng()
-            };
-
-            tripData[currentDay].push(newItem);
-            saveOnly();
-            renderList();
-            input.value = "";
+            const newItemRef = push(ref(db, `tokyo_trip/days/${window.currentDay}`));
+            set(newItemRef, { name: place.name, type: "장소", jpy: 0, lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
+            document.getElementById("pac-input").value = "";
         });
-
         renderList();
-    }
+    };
 
-    function addManualItem() {
+    window.addManualItem = () => {
         const name = document.getElementById('manual-name').value;
         const type = document.getElementById('manual-type').value;
-        if (!name) return alert("항목 이름을 입력하세요.");
-
-        const newItem = {
-            id: Date.now(),
-            name: name,
-            type: type,
-            jpy: 0,
-            lat: null, lng: null
-        };
-
-        tripData[currentDay].push(newItem);
-        saveOnly();
-        renderList();
+        if (!name) return;
+        const newItemRef = push(ref(db, `tokyo_trip/days/${window.currentDay}`));
+        set(newItemRef, { name, type, jpy: 0 });
         document.getElementById('manual-name').value = "";
-    }
+    };
 
-    function changeDay(day) {
-        currentDay = day;
-        renderList();
-    }
+    window.changeDay = (day) => { window.currentDay = day; renderList(); };
 
-    function renderList() {
+    window.updatePrice = (id, val) => {
+        update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { jpy: parseFloat(val) || 0 });
+    };
+
+    window.updateRate = (val) => { update(dbRef, { rate: parseFloat(val) || 0 }); };
+
+    window.deleteItem = (id) => { remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`)); };
+
+    window.renderList = () => {
         const container = document.getElementById('expense-list-container');
+        if(!container) return;
         container.innerHTML = "";
-        document.getElementById('current-day-title').innerText = `📍 ${currentDay.replace('day','')}일차 일정 및 엔화 경비`;
+        document.getElementById('current-day-title').innerText = `📍 ${window.currentDay.toUpperCase()} 일정`;
 
-        markers.forEach(m => m.setMap(null));
-        markers = [];
+        window.markers.forEach(m => m.setMap(null));
+        window.markers = [];
 
-        const rate = parseFloat(document.getElementById('global-rate').value) / 100;
-
-        // 호텔 전용 마커 (고유한 스타일)
+        // 호텔 마커
         const hotelDiv = document.createElement('div');
-        hotelDiv.className = 'hotel-marker';
-        hotelDiv.innerHTML = '🏨';
-        const hotelMarker = new AdvancedMarkerElement({
-            map: map,
-            position: HOTEL_COORDS,
-            title: "숙소: 렘 롯폰기",
-            content: hotelDiv
-        });
-        markers.push(hotelMarker);
+        hotelDiv.className = 'hotel-marker'; hotelDiv.innerHTML = '🏨';
+        window.markers.push(new AdvancedMarkerElement({ map, position: HOTEL_COORDS, content: hotelDiv }));
 
-        AUTO_SCHEDULE[currentDay].forEach(item => {
-            const row = document.createElement('div');
-            row.className = "row place-row fixed-item";
-            row.innerHTML = `<div class="col-12 text-muted small fw-bold">${item.name}</div>`;
+        // 고정 텍스트
+        AUTO_SCHEDULE[window.currentDay].forEach(text => {
+            const row = document.createElement('div'); row.className = "row place-row fixed-item";
+            row.innerHTML = `<div class="col-12 text-muted small fw-bold">${text}</div>`;
             container.appendChild(row);
         });
 
-        tripData[currentDay].forEach((item) => {
+        // 유저 데이터
+        const dayData = window.tripData.days[window.currentDay] || {};
+        const rate = window.tripData.rate / 100;
+        let dayJpy = 0;
+
+        Object.keys(dayData).forEach(id => {
+            const item = dayData[id];
             const krw = Math.floor(item.jpy * rate);
+            dayJpy += item.jpy;
             const typeClass = item.type === '아침' ? 'bg-morning' : item.type === '점심' ? 'bg-lunch' : item.type === '저녁' ? 'bg-dinner' : item.type === '장소' ? 'bg-spot' : 'bg-etc';
-            
-            const row = document.createElement('div');
-            row.className = "row place-row";
+
+            const row = document.createElement('div'); row.className = "row place-row";
             row.innerHTML = `
-                <div class="col-5">
-                    <span class="type-badge ${typeClass}">${item.type}</span>
-                    <strong>${item.name}</strong>
-                </div>
-                <div class="col-3">
-                    <div class="input-group input-group-sm">
-                        <input type="number" class="form-control" value="${item.jpy}" oninput="updatePrice(${item.id}, this.value)">
-                        <span class="input-group-text">¥</span>
-                    </div>
-                </div>
-                <div class="col-3 text-end fw-bold text-primary" id="krw-display-${item.id}">${krw.toLocaleString()}원</div>
-                <div class="col-1 text-end">
-                    <button class="btn btn-sm text-danger" onclick="deleteItem(${item.id})">✕</button>
-                </div>
+                <div class="col-5"><span class="type-badge ${typeClass}">${item.type}</span><strong>${item.name}</strong></div>
+                <div class="col-3"><div class="input-group input-group-sm"><input type="number" class="form-control" value="${item.jpy}" oninput="updatePrice('${id}', this.value)"><span class="input-group-text">¥</span></div></div>
+                <div class="col-3 text-end fw-bold text-primary" id="krw-${id}">${krw.toLocaleString()}원</div>
+                <div class="col-1 text-end"><button class="btn btn-sm text-danger" onclick="deleteItem('${id}')">✕</button></div>
             `;
             container.appendChild(row);
-
-            if (item.lat) {
-                const marker = new google.maps.Marker({
-                    position: { lat: item.lat, lng: item.lng },
-                    map: map,
-                    title: item.name
-                });
-                markers.push(marker);
-            }
+            if(item.lat) window.markers.push(new google.maps.Marker({ position: {lat: item.lat, lng: item.lng}, map, title: item.name }));
         });
 
-        updateGrandTotal();
-    }
-
-    function updatePrice(id, val) {
-        const item = tripData[currentDay].find(p => p.id === id);
-        if (item) {
-            item.jpy = parseFloat(val) || 0;
-            saveOnly();
-            
-            // 행 전체를 그리지 않고 해당 행의 텍스트와 총 합계만 업데이트 (포커스 유지 비결)
-            const rate = parseFloat(document.getElementById('global-rate').value) / 100;
-            const krwVal = Math.floor(item.jpy * rate);
-            const display = document.getElementById(`krw-display-${id}`);
-            if(display) display.innerText = krwVal.toLocaleString() + "원";
-            
-            updateGrandTotal();
-        }
-    }
-
-    // 환율 변경 시 모든 행의 ₩ 표시만 강제 갱신
-    function updateAllRowTexts() {
-        const rate = parseFloat(document.getElementById('global-rate').value) / 100;
-        tripData[currentDay].forEach(item => {
-            const krwVal = Math.floor(item.jpy * rate);
-            const display = document.getElementById(`krw-display-${item.id}`);
-            if(display) display.innerText = krwVal.toLocaleString() + "원";
-        });
-    }
-
-    function deleteItem(id) {
-        tripData[currentDay] = tripData[currentDay].filter(p => p.id !== id);
-        saveOnly();
-        renderList();
-    }
-
-    function saveOnly() {
-        tripData.rate = document.getElementById('global-rate').value;
-        localStorage.setItem('tokyo_comprehensive_final_v3', JSON.stringify(tripData));
-    }
-
-    function updateGrandTotal() {
-        const rate = parseFloat(document.getElementById('global-rate').value) / 100;
+        // 총액 계산
         let totalJpyInKrw = 0;
-        ['day1', 'day2', 'day3', 'day4', 'day5'].forEach(d => {
-            tripData[d].forEach(p => { totalJpyInKrw += (p.jpy * rate); });
+        Object.values(window.tripData.days).forEach(day => {
+            Object.values(day).forEach(item => { totalJpyInKrw += (item.jpy * rate); });
         });
-        const finalTotal = Math.floor(totalJpyInKrw + FIXED_TOTAL_KRW);
-        document.getElementById('grand-total').innerText = finalTotal.toLocaleString();
-    }
-
-    document.getElementById('global-rate').value = tripData.rate;
+        document.getElementById('grand-total').innerText = Math.floor(totalJpyInKrw + FIXED_KRW).toLocaleString();
+    };
 </script>
 
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBCe7skkyYWeX4SSSUbDE3eWArx8PKgOS0&callback=initMap" async defer></script>
+
 
 </body>
 </html>
