@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>도쿄 실시간 플래너 :: 뱃지 연동형</title>
+    <title>도쿄 실시간 플래너</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #007bff; --bg-light: #f4f7f6; }
+        :root { --primary-color: #4361EE; --bg-light: #F5F3EF; }
         body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); margin: 0; padding: 0; overflow-x: hidden; }
-
+        
         /* ── 공통 카드 ── */
         .map-card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; background: #eee; }
         #map { height: 100%; width: 100%; }
@@ -32,42 +32,183 @@
             -ms-overflow-style: none;
         }
         .nav-pills::-webkit-scrollbar { display: none; }
-        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #eee; color: #666; padding: 6px 14px; font-size: 13px; flex-shrink: 0; }
+        .nav-link { white-space: nowrap; border-radius: 18px; background: #FDFCFB; border: 1px solid #E5E2DC; color: #555; padding: 6px 14px; font-size: 13px; flex-shrink: 0; }
         .nav-link.active { background-color: var(--primary-color) !important; color: #fff !important; }
 
-        /* ── 리스트 ── */
-        .place-row { display: flex; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f2f2f2; gap: 8px; }
+        /* ── 섹션 그룹 ── */
+        .section-group { margin-bottom: 14px; }
+        .section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 10px; border-radius: 8px; margin-bottom: 4px;
+        }
+        .section-header-left { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+        .section-subtotal { font-size: 11px; font-weight: 700; opacity: .85; }
+
+        /* 섹션별 색상 */
+        /* 시간대 섹션 헤더 */
+        .sh-morning  { background: #FEFBF2; color: #B87C10; }
+        .sh-lunch    { background: #F0F7F2; color: #2E7A45; }
+        .sh-dinner   { background: #FEF5EE; color: #C96620; }
+        .sh-unset    { background: #F4F4F6; color: #6B7280; }
+
+        /* 분류 뱃지 */
+        .cat-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; flex-shrink: 0; }
+        .cb-meal     { background: #FEF9ED; color: #B87C10; }
+        .cb-spot     { background: #EEF2FF; color: #4361EE; }
+        .cb-shopping { background: #FCF3FB; color: #8B3FAB; }
+        .cb-transit  { background: #EDFAF3; color: #277A50; }
+        .cb-etc      { background: #F4F4F6; color: #6B7280; }
+
+        /* 드래그앤드롭 */
+        .place-row[draggable="true"] { cursor: grab; }
+        .place-row[draggable="true"]:active { cursor: grabbing; }
+        .place-row select, .place-row input, .place-row button { -webkit-user-drag: none; user-drag: none; }
+        .place-row.dragging { opacity: .35; background: #EEF2FF; border-radius: 8px; }
+        .drag-handle { color: #C8C4BD; font-size: 14px; padding: 0 2px; flex-shrink: 0; cursor: grab; user-select: none; }
+        .cat-select {
+            border: 1px solid #E5E2DC; border-radius: 8px;
+            background: #F8F7F5; color: #555;
+            font-size: 11px; padding: 2px 4px;
+            font-family: inherit; cursor: pointer; outline: none; flex-shrink: 0;
+        }
+        .cat-select:focus { border-color: #4361EE; background: #EEF2FF; }
+        .section-drop-zone {
+            min-height: 40px; border-radius: 8px;
+            border: 2px dashed transparent;
+            transition: border-color .15s, background .15s;
+            padding: 2px;
+        }
+        .section-drop-zone.drag-over {
+            border-color: #4361EE;
+            background: #EEF2FF;
+        }
+        .drop-hint {
+            text-align: center; font-size: 11px; color: #bbb;
+            padding: 10px 0; display: none;
+        }
+        .section-drop-zone.drag-over .drop-hint { display: block; }
+
+        /* ── 타임라인 흐름도 ── */
+        .day-flow {
+            background: linear-gradient(135deg, #1A2A6C 0%, #4361EE 100%);
+            border-radius: 12px; margin-bottom: 12px;
+            padding: 12px 14px 10px; position: relative; overflow: hidden;
+        }
+        .day-flow::before {
+            content: ''; position: absolute; top: -20px; right: -20px;
+            width: 100px; height: 100px; background: rgba(255,255,255,0.06);
+            border-radius: 50%;
+        }
+        .flow-title { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 600; margin-bottom: 10px; letter-spacing: .5px; }
+        /* 3-column + 2 connector grid */
+        .flow-slots {
+            display: grid;
+            grid-template-columns: 1fr 18px 1fr 18px 1fr;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+        .flow-connector {
+            display: flex; align-items: center; justify-content: center;
+            padding-top: 18px; color: rgba(255,255,255,0.22); font-size: 16px;
+        }
+        .flow-slot {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            min-width: 0;
+        }
+        .flow-slot-dot {
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; border: 2px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.08);
+            position: relative; transition: background .2s;
+        }
+        .flow-slot-dot.has-items {
+            background: rgba(255,255,255,0.22);
+            border-color: rgba(255,255,255,0.65);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+        }
+        .flow-slot-dot.empty { opacity: 0.3; }
+        .flow-slot-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #FFC947; color: #1A2A6C;
+            border-radius: 50%; width: 17px; height: 17px;
+            font-size: 9px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
+            border: 1.5px solid rgba(26,42,108,0.3);
+        }
+        .flow-slot-label { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 700; letter-spacing: .3px; }
+        .flow-slot-krw { font-size: 8px; color: #FFC947; font-weight: 600; }
+        .flow-slot-chips { display: flex; flex-direction: column; gap: 2px; width: 100%; margin-top: 3px; }
+        .flow-chip {
+            background: rgba(255,255,255,0.13); border-radius: 5px;
+            padding: 2px 4px; font-size: 9px;
+            color: rgba(255,255,255,0.82); white-space: nowrap;
+            overflow: hidden; text-overflow: ellipsis; text-align: center; width: 100%;
+            box-sizing: border-box;
+        }
+        .flow-chip-more { color: rgba(255,255,255,0.38) !important; background: transparent !important; }
+        /* 미정 행 */
+        .flow-unset-row {
+            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+            padding-top: 7px; margin-top: 2px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .flow-unset-label { font-size: 9px; color: rgba(255,255,255,0.38); white-space: nowrap; flex-shrink: 0; }
+        .flow-chip-unset {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 8px; padding: 2px 7px;
+            font-size: 9px; color: rgba(255,255,255,0.58);
+            white-space: nowrap; max-width: 82px;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .flow-summary {
+            font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .flow-summary-total { font-weight: 800; color: #FFC947; font-size: 12px; }
+
+        /* ── 리스트 행 ── */
+        .place-row { display: flex; align-items: flex-start; padding: 8px 6px; border-bottom: 1px solid #F0EDE8; gap: 8px; }
+        .place-row:last-child { border-bottom: none; }
         .item-info { flex: 1; min-width: 0; }
-        .item-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .price-area { flex-shrink: 0; width: 90px; }
         .item-comment {
-            display: block; width: 100%; margin-top: 4px;
-            font-size: 11px; color: #666; background: transparent; border: none;
-            border-bottom: 1px dashed #ddd; outline: none; padding: 1px 2px;
+            display: block; width: 100%; margin-top: 3px;
+            font-size: 11px; color: #888; background: transparent; border: none;
+            border-bottom: 1px dashed #e8e8e8; outline: none; padding: 1px 2px;
             font-family: inherit;
         }
-        .item-comment:focus { border-bottom-color: #007bff; background: #f8faff; border-radius: 3px 3px 0 0; }
+        .item-comment:focus { border-bottom-color: #4361EE; background: #F5F7FF; border-radius: 3px 3px 0 0; }
         .item-comment::placeholder { color: #ccc; }
 
         /* ── 뱃지 ── */
         .type-badge { font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
-        .bg-morning  { background: #fff3bf; color: #f08c00; }
-        .bg-lunch    { background: #d3f9d8; color: #2b8a3e; }
-        .bg-dinner   { background: #ffd8a8; color: #e67700; }
-        .bg-spot     { background: #e7f1ff; color: #007bff; }
-        .bg-transit  { background: #e8f5e9; color: #2e7d32; }
-        .bg-shopping { background: #fce4ec; color: #c2185b; }
-        .bg-etc      { background: #f1f3f5; color: #495057; }
+        .bg-morning  { background: #FEF9ED; color: #B87C10; }
+        .bg-lunch    { background: #E8F5EA; color: #2E7A45; }
+        .bg-dinner   { background: #FEF3E2; color: #C96620; }
+        .bg-spot     { background: #EEF2FF; color: #4361EE; }
+        .bg-transit  { background: #EDFAF3; color: #277A50; }
+        .bg-shopping { background: #FAF0FD; color: #8B3FAB; }
+        .bg-etc      { background: #F4F4F6; color: #6B7280; }
 
+        /* ── 핀 맥동 ── */
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(255,59,48,0.5); }
+            70%  { box-shadow: 0 0 0 10px rgba(255,59,48,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
+        }
         /* ── 호텔 마커 ── */
-        .hotel-marker { background: #007bff; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .hotel-marker { background: #4361EE; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 
         /* ════════════════════════════════
            MOBILE  (< 768px)
         ════════════════════════════════ */
         @media (max-width: 767px) {
             .page-wrapper { padding: 12px; padding-bottom: 90px; }
-            .map-card { height: 220px; margin-bottom: 12px; }
+            .map-card { height: 330px; margin-bottom: 12px; }
             .left-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
             .rate-row { display: flex; align-items: center; gap: 6px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:8px 12px; }
             .top-control-card { margin: 0; }
@@ -81,13 +222,16 @@
                 padding: 12px 15px; box-shadow: 0 -3px 10px rgba(0,0,0,0.07);
                 z-index: 1000; display: flex; justify-content: space-between; align-items: center;
             }
+            .main-layout{
+                padding-top : 10px;
+            }
         }
 
         /* ════════════════════════════════
            PC  (≥ 768px)
         ════════════════════════════════ */
         @media (min-width: 768px) {
-            body { background-color: #dde3ea; }
+            body { background-color: #E6E2DB; }
             .page-wrapper {
                 max-width: 1200px;
                 margin: 0 auto;
@@ -132,14 +276,14 @@
             }
             .top-control-card {
                 margin: 0; box-shadow: none; border-radius: 8px;
-                background: #f8f9fb; padding: 10px;
+                background: #F8F7F5; padding: 10px;
             }
             .rate-row {
                 display: flex; align-items: center; gap: 8px;
-                background: #f8f9fb; border-radius: 8px; padding: 8px 10px;
+                background: #F8F7F5; border-radius: 8px; padding: 8px 10px;
             }
             .pac-input-wrap { margin: 0; }
-            #pac-input { background: #f8f9fb; border: none !important; box-shadow: none !important; border-radius: 8px; }
+            #pac-input { background: #F8F7F5; border: none !important; box-shadow: none !important; border-radius: 8px; }
 
             /* 오른쪽 패널 */
             .right-panel {
@@ -152,7 +296,7 @@
             }
             .right-panel-header {
                 padding: 14px 20px 0;
-                border-bottom: 1px solid #f0f0f0;
+                border-bottom: 1px solid #F0EDE8;
             }
             .right-panel-body {
                 padding: 14px 20px;
@@ -163,11 +307,11 @@
 
             /* footer → sticky 하단 */
             .footer-total {
-                border-top: 1px solid #f0f0f0;
+                border-top: 1px solid #F0EDE8;
                 padding: 12px 20px;
                 margin: 0;
                 display: flex; justify-content: space-between; align-items: center;
-                background: #fafbfc;
+                background: #FDFCFB;
             }
         }
 
@@ -194,17 +338,17 @@
         }
         .cl-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 20px 12px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+            padding: 16px 20px 12px; border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
         }
         .cl-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
         .cl-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
         .cl-progress { padding: 8px 20px 0; font-size: 11px; color: #999; flex-shrink: 0; }
-        .cl-progress-bar-wrap { height: 4px; background: #f0f0f0; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
+        .cl-progress-bar-wrap { height: 4px; background: #ECEAE6; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
         .cl-progress-bar { height: 100%; background: var(--primary-color); border-radius: 2px; transition: width .3s; }
         .cl-body { overflow-y: auto; flex: 1; padding: 8px 20px 16px; }
         .cl-item {
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 0; border-bottom: 1px solid #f5f5f5;
+            padding: 10px 0; border-bottom: 1px solid #F0EDE8;
         }
         .cl-item:last-child { border-bottom: none; }
         .cl-checkbox {
@@ -222,8 +366,8 @@
         .cl-label.done { text-decoration: line-through; color: #bbb; }
         .cl-del { background: none; border: none; color: #ddd; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
         .cl-del:hover { color: #e74c3c; }
-        .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
-        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #e0e0e0; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
+        .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #F0EDE8; flex-shrink: 0; }
+        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #E5E2DC; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
         .cl-add-row input:focus { border-color: var(--primary-color); }
         .cl-add-row button { border-radius: 8px; background: var(--primary-color); color: #fff; border: none; padding: 7px 16px; font-size: 13px; cursor: pointer; }
         .cl-section-label { font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: .5px; margin: 12px 0 4px; }
@@ -236,7 +380,7 @@
         }
         .ph-overlay.open { display: flex; }
         .ph-sheet {
-            background: #f6f8fc; width: 100%; max-width: 580px;
+            background: #F5F3EF; width: 100%; max-width: 580px;
             border-radius: 22px 22px 0 0;
             max-height: 85vh; display: flex; flex-direction: column;
             animation: slideUp .25s ease;
@@ -248,7 +392,7 @@
         .ph-header {
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 20px 12px; background: #fff;
-            border-radius: 22px 22px 0 0; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+            border-radius: 22px 22px 0 0; border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
         }
         .ph-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
         .ph-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
@@ -256,17 +400,17 @@
         .ph-tabs {
             display: flex; overflow-x: auto; gap: 6px;
             padding: 10px 16px; background: #fff;
-            border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+            border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         .ph-tabs::-webkit-scrollbar { display: none; }
         .ph-tab {
             white-space: nowrap; flex-shrink: 0;
-            border: 1px solid #e0e0e0; background: #fff; color: #666;
+            border: 1px solid #E5E2DC; background: #FDFCFB; color: #666;
             border-radius: 16px; padding: 5px 12px; font-size: 12px; cursor: pointer;
             font-family: inherit; font-weight: 500;
         }
-        .ph-tab.active { background: #007bff; border-color: #007bff; color: #fff; font-weight: 700; }
+        .ph-tab.active { background: #4361EE; border-color: #4361EE; color: #fff; font-weight: 700; }
         /* 카드 목록 */
         .ph-body { overflow-y: auto; flex: 1; padding: 12px 14px 20px; }
         .ph-card {
@@ -276,29 +420,29 @@
             cursor: pointer; transition: box-shadow .15s;
             position: relative;
         }
-        .ph-card:active { box-shadow: 0 0 0 2px #007bff; }
+        .ph-card:active { box-shadow: 0 0 0 2px #4361EE; }
         .ph-korean { font-size: 12px; color: #888; margin-bottom: 4px; }
-        .ph-japanese { font-size: 17px; font-weight: 700; color: #222; letter-spacing: .5px; margin-bottom: 5px; }
-        .ph-pronun { font-size: 12px; color: #007bff; font-weight: 500; }
+        .ph-japanese { font-size: 17px; font-weight: 700; color: #1A1A2E; letter-spacing: .5px; margin-bottom: 5px; }
+        .ph-pronun { font-size: 12px; color: #4361EE; font-weight: 500; }
         .ph-copy-hint { position: absolute; top: 10px; right: 12px; font-size: 10px; color: #ccc; }
         .ph-copied { color: #28a745 !important; }
         .ph-speak-btn {
-            border: none; background: #f0f6ff; color: #007bff;
+            border: none; background: #EEF2FF; color: #4361EE;
             border-radius: 50%; width: 28px; height: 28px;
             font-size: 14px; cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: background .15s;
         }
-        .ph-speak-btn:active, .ph-speak-btn.speaking { background: #007bff; color: #fff; }
+        .ph-speak-btn:active, .ph-speak-btn.speaking { background: #4361EE; color: #fff; }
     </style>
 </head>
 <body>
 
 <div class="page-wrapper">
-    <div style="display:flex; align-items:center; justify-content:center; gap:10px; padding: 4px 0 2px;" class="page-title">
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; " class="page-title">
         <h6 class="fw-bold m-0"> 2026년 | 🗼도쿄 여행 계획 🐉🐏 </h6>
-        <button onclick="openChecklist()" style="border:none; background:#f0f6ff; color:#007bff; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🎒 준비물</button>
-        <button onclick="openPhrasebook()" style="border:none; background:#fff3e0; color:#e67700; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🗣️ 회화</button>
+        <button onclick="openChecklist()" style="border:none; background:#EEF2FF; color:#4361EE; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🎒 준비물</button>
+        <button onclick="openPhrasebook()" style="border:none; background:#FEF5EE; color:#C96620; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🗣️ 회화</button>
     </div>
 
     <div class="main-layout">
@@ -308,35 +452,67 @@
 
             <div class="left-controls">
                 <!-- 환율 -->
-                <div class="rate-row">
-                    <span style="font-size:11px; color:#999; white-space:nowrap;">💱 환율 (100엔)</span>
-                    <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945" style="max-width:76px; font-weight:bold;">
-                    <span style="font-size:11px; color:#aaa; flex:1;">KRW</span>
+                <div class="rate-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:11px; color:#999; white-space:nowrap;">💱 환율 (100엔)</span>
+                        <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945" style="max-width:76px; font-weight:bold;">
+                        <span style="font-size:11px; color:#aaa;">KRW</span>
+                        <button id="rate-refresh-btn" onclick="fetchLiveRate()" title="실시간 환율 가져오기"
+                            style="border:none;background:#EEF2FF;color:#4361EE;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;margin-left:auto;">🔄 실시간</button>
+                    </div>
+                    <div id="rate-status" style="font-size:10px; color:#aaa; padding-left:2px;"></div>
+                    <!-- 엔화 → 원화 변환기 -->
+                    <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+                        <input type="number" id="jpy-input" placeholder="¥ 엔화 입력" oninput="calcKrw()"
+                            style="flex:1; border:none; border-bottom:1px solid #dde; background:transparent; font-size:13px; font-weight:700; outline:none; padding:3px 2px; font-family:inherit; min-width:0;">
+                        <span style="font-size:11px; color:#aaa; white-space:nowrap;">→</span>
+                        <span id="krw-result" style="font-size:13px; font-weight:800; color:#4361EE; white-space:nowrap; min-width:60px; text-align:right;">-</span>
+                        <span style="font-size:11px; color:#aaa;">원</span>
+                    </div>
                 </div>
 
                 <!-- 수기 추가 -->
                 <div class="top-control-card">
                     <div style="font-size:10px; color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
-                    <div class="input-group input-group-sm">
-                        <select id="manual-type" class="form-select px-1" style="max-width:75px; font-size:11px;">
-                            <option value="아침">아침</option>
-                            <option value="점심" selected>점심</option>
-                            <option value="저녁">저녁</option>
-                            <option value="장소">장소</option>
-                            <option value="교통">교통</option>
-                            <option value="쇼핑">쇼핑</option>
-                            <option value="기타">기타</option>
+                    <!-- 시간대 + 분류 -->
+                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                        <select id="manual-time" class="form-select form-select-sm" style="flex:1; font-size:12px;">
+                            <option value="아침">🌅 아침</option>
+                            <option value="점심" selected>☀️ 점심</option>
+                            <option value="저녁">🌙 저녁</option>
+                            <option value="미정">❓ 미정</option>
                         </select>
-                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:12px;">
-                        <button class="btn btn-primary px-2" onclick="addManualItem()">+</button>
+                        <select id="manual-cat" class="form-select form-select-sm" style="flex:1; font-size:12px;">
+                            <option value="식사" selected>🍽️ 식사</option>
+                            <option value="장소">📍 장소</option>
+                            <option value="쇼핑">🛍️ 쇼핑</option>
+                            <option value="교통">🚃 교통</option>
+                            <option value="기타">📌 기타</option>
+                        </select>
                     </div>
-                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-2" placeholder="💬 메모 (선택사항)" style="font-size:11px; border-radius:6px; color:#555; background:#fff;">
+                    <!-- 이름 + 추가 버튼 -->
+                    <div class="input-group input-group-sm mb-1">
+                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:12px;">
+                        <button class="btn btn-primary px-3" onclick="addManualItem()">+</button>
+                    </div>
+                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-1" placeholder="💬 메모 (선택사항)" style="font-size:11px; border-radius:6px; color:#555; background:#fff;">
                 </div>
 
                 <!-- 장소 검색 -->
                 <div class="pac-input-wrap">
                     <div style="font-size:10px; color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
                     <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
+                    <!-- 핀 미리보기 확인 카드 -->
+                    <div id="place-preview" style="display:none; margin-top:8px; background:#EEF2FF; border-radius:10px; padding:10px 12px; border:1px solid #C5D2FA;">
+                        <div style="font-size:11px; color:#4361EE; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
+                        <div style="font-size:12px; font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
+                        <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:13px; font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
+                        <div style="font-size:10px; color:#888; margin-bottom:8px;" id="preview-addr"></div>
+                        <div style="display:flex; gap:6px;">
+                            <button onclick="confirmAddPlace()" class="btn btn-primary btn-sm" style="flex:1; font-size:12px;">+ 일정에 추가</button>
+                            <button onclick="cancelPreview()" class="btn btn-outline-secondary btn-sm" style="font-size:12px;">취소</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,6 +520,11 @@
         <!-- ── 오른쪽 패널 ── -->
         <div class="right-panel">
             <div class="right-panel-header">
+                <!-- 타임라인 흐름도 -->
+                <div class="day-flow" id="day-flow">
+                    <div class="flow-title">📅 오늘의 여행 흐름</div>
+                    <div id="day-flow-inner"></div>
+                </div>
                 <ul class="nav nav-pills" id="pills-tab">
                     <li class="nav-item"><button class="nav-link active" onclick="changeDay(this, 'day1')">4/8(수)</button></li>
                     <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day2')">4/9(목)</button></li>
@@ -456,59 +637,153 @@
             });
 
             const autocomplete = new Autocomplete(document.getElementById("pac-input"));
+            let previewPlace = null;
+            let previewMarker = null;
+
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 if (!place.geometry) return;
-                const selectedType = document.getElementById('manual-type').value;
-                const newItemRef = push(ref(db, `tokyo_trip/days/${window.currentDay}`));
-                set(newItemRef, {
-                    name: place.name,
-                    type: selectedType,
+
+                // 기존 미리보기 마커 제거
+                if (previewMarker) { previewMarker.setMap(null); previewMarker = null; }
+
+                previewPlace = place;
+
+                // 미리보기 핀 (맥동 애니메이션)
+                const pin = document.createElement('div');
+                pin.style.cssText = 'background:#ff3b30;color:#fff;border-radius:50%;border:3px solid #fff;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(255,59,48,0.5);animation:pulse 1s infinite;';
+                pin.textContent = '📍';
+                previewMarker = new window.AdvancedMarkerElement({
+                    map: window.googleMap,
+                    position: { lat: place.geometry.location.lat(), lng: place.geometry.location.lng() },
+                    content: pin
+                });
+                window.googleMap.panTo(place.geometry.location);
+
+                // 미리보기 카드 표시
+                document.getElementById('preview-name').style.display = 'none';
+                document.getElementById('preview-name-input').value = place.name;
+                document.getElementById('preview-addr').textContent = place.formatted_address || '';
+                document.getElementById('place-preview').style.display = 'block';
+            });
+
+            window.confirmAddPlace = () => {
+                if (!previewPlace) return;
+                const nameInput = document.getElementById('preview-name-input').value.trim();
+                const name = nameInput || previewPlace.name || '이름 없는 장소';
+                if (!name || name === '이름 없는 장소' && !confirm('이름 없이 추가할까요?')) return;
+                const selectedTime = document.getElementById('manual-time').value;
+                const selectedCat = document.getElementById('manual-cat').value;
+                set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), {
+                    name,
+                    timeSlot: selectedTime,
+                    cat: selectedCat,
                     jpy: 0,
                     comment: "",
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng()
+                    lat: previewPlace.geometry.location.lat(),
+                    lng: previewPlace.geometry.location.lng()
                 });
-                document.getElementById("pac-input").value = "";
+                window.cancelPreview();
+            };
+
+            window.cancelPreview = () => {
+                if (previewMarker) { previewMarker.setMap(null); previewMarker = null; }
+                previewPlace = null;
+                document.getElementById('pac-input').value = '';
+                document.getElementById('place-preview').style.display = 'none';
+                document.getElementById('preview-name-input').value = '';
+            };
+
+            // ── 지도 클릭 → 핀 꽂기 ──
+            const geocoder = new google.maps.Geocoder();
+            window.googleMap.addListener('click', (e) => {
+                const latLng = e.latLng;
+
+                // 기존 미리보기 마커 제거
+                if (previewMarker) { previewMarker.setMap(null); previewMarker = null; }
+
+                // 맥동 핀 표시
+                const pin = document.createElement('div');
+                pin.style.cssText = 'background:#ff3b30;color:#fff;border-radius:50%;border:3px solid #fff;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(255,59,48,0.5);animation:pulse 1s infinite;';
+                pin.textContent = '📍';
+                previewMarker = new window.AdvancedMarkerElement({ map: window.googleMap, position: latLng, content: pin });
+
+                // 좌표 저장 (geometry 없이 직접 저장)
+                previewPlace = {
+                    name: '',
+                    geometry: { location: { lat: () => latLng.lat(), lng: () => latLng.lng() } },
+                    formatted_address: `${latLng.lat().toFixed(5)}, ${latLng.lng().toFixed(5)}`
+                };
+
+                // 역지오코딩으로 주소 추출
+                geocoder.geocode({ location: latLng }, (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        const addr = results[0].formatted_address;
+                        document.getElementById('preview-addr').textContent = addr;
+                        // 가장 가까운 장소명 힌트
+                        const poi = results.find(r => r.types.includes('point_of_interest') || r.types.includes('establishment'));
+                        if (poi && !document.getElementById('preview-name-input').value) {
+                            document.getElementById('preview-name-input').placeholder = poi.name || '장소 이름 입력';
+                        }
+                    } else {
+                        document.getElementById('preview-addr').textContent = previewPlace.formatted_address;
+                    }
+                });
+
+                document.getElementById('preview-name-input').value = '';
+                document.getElementById('preview-name').style.display = 'none';
+                document.getElementById('place-preview').style.display = 'block';
             });
+
             renderList();
         };
     }
+
+    // 가격 입력 중 renderList 차단 플래그
+    window._editingPrice = false;
 
     onValue(dbRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
             window.tripData = data;
             document.getElementById('global-rate').value = data.rate || 945;
-            renderList();
+            // 가격 입력 중이면 원화 표시만 갱신하고 DOM 재렌더 스킵
+            if (window._editingPrice) {
+                updateGrandTotal();
+                // 포커스된 항목의 원화 표시 갱신
+                if (window._focusedPriceId) syncConverterInput(
+                    document.querySelector(`input[data-price-id="${window._focusedPriceId}"]`)?.value || 0
+                );
+            } else {
+                renderList();
+            }
         } else { set(dbRef, window.tripData); }
     });
 
-    // 메모 값을 변수에 미리 캐싱 (blur 타이밍 이슈 방지)
-    let cachedComment = '';
-    document.getElementById('manual-comment').addEventListener('input', (e) => {
-        cachedComment = e.target.value;
-    });
+    // 이름/메모 값을 항상 변수에 동기화 (버튼 클릭 시 blur로 값이 날아가는 이슈 방지)
+    let _name = '', _comment = '';
+    const nameEl = document.getElementById('manual-name');
+    const commentEl = document.getElementById('manual-comment');
+    nameEl.addEventListener('input', e => { _name = e.target.value; });
+    commentEl.addEventListener('input', e => { _comment = e.target.value; });
 
     window.addManualItem = () => {
-        const name = document.getElementById('manual-name').value.trim();
-        const type = document.getElementById('manual-type').value;
-        // DOM value와 캐시 둘 다 확인 (더 긴 쪽 사용)
-        const domComment = document.getElementById('manual-comment').value.trim();
-        const comment = domComment || cachedComment.trim();
+        const name = (_name || nameEl.value).trim();
+        const comment = (_comment || commentEl.value).trim();
+        const timeSlot = document.getElementById('manual-time').value;
+        const cat = document.getElementById('manual-cat').value;
         if (!name) return;
-        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, type, jpy: 0, comment });
-        document.getElementById('manual-name').value = "";
-        document.getElementById('manual-comment').value = "";
-        cachedComment = '';
+        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, timeSlot, cat, jpy: 0, comment });
+        nameEl.value = ''; commentEl.value = '';
+        _name = ''; _comment = '';
     };
 
-    // Enter 키로 항목 추가 (이름 입력란 → 메모 입력란으로 포커스 이동)
-    document.getElementById('manual-name').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('manual-comment').focus(); }
+    // Enter: 이름 → 메모로 포커스
+    nameEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commentEl.focus(); }
     });
-    // 메모 입력란에서 Enter → 추가
-    document.getElementById('manual-comment').addEventListener('keydown', (e) => {
+    // Enter: 메모 → 추가
+    commentEl.addEventListener('keydown', e => {
         if (e.key === 'Enter') { e.preventDefault(); window.addManualItem(); }
     });
 
@@ -520,6 +795,7 @@
     };
 
     window.updatePrice = (id, val) => {
+        window._editingPrice = true;
         update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { jpy: parseFloat(val) || 0 });
     };
 
@@ -527,9 +803,150 @@
         update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { comment: val });
     };
 
+    window.updateTimeSlot = (id, val) => {
+        window._editingPrice = true;
+        update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { timeSlot: val });
+    };
+
+    window.updateCat = (id, val) => {
+        window._editingPrice = true;
+        update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { cat: val });
+    };
+
+    function setupDropZone(zone) {
+        zone.addEventListener('dragover', e => {
+            e.preventDefault();
+            zone.classList.add('drag-over');
+        });
+        zone.addEventListener('dragleave', e => {
+            if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+        });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('drag-over');
+            const id = e.dataTransfer.getData('text/plain');
+            const newTimeSlot = zone.dataset.timeslot;
+            if (!id || !newTimeSlot) return;
+
+            // 기존 raw 데이터에서 cat 보장 (마이그레이션 적용)
+            const rawItem = window.tripData?.days?.[window.currentDay]?.[id];
+            const migratedItem = rawItem ? migrateItem(rawItem) : null;
+            const cat = migratedItem?.cat || '기타';
+
+            update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { timeSlot: newTimeSlot, cat });
+        });
+    }
+
     window.deleteItem = (id) => {
         if (confirm("삭제할까요?")) remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`));
     };
+
+    function updateDayFlow(daySchedule, rate) {
+        const inner = document.getElementById('day-flow-inner');
+        if (!inner) return;
+
+        // 시간대별 그룹핑 (daySchedule은 이미 migrateItem 적용됨)
+        const groups = { '아침': [], '점심': [], '저녁': [], '미정': [] };
+        Object.values(daySchedule).forEach(item => {
+            const t = item.timeSlot || '미정';
+            (groups[t] || groups['미정']).push(item);
+        });
+
+        const TIME_NODES = [
+            { key: '아침', icon: '🌅' },
+            { key: '점심', icon: '☀️' },
+            { key: '저녁', icon: '🌙' },
+        ];
+
+        const allItems = Object.values(groups).flat();
+        const totalItems = allItems.length;
+        const totalKrw = Math.floor(allItems.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+
+        // 슬롯 HTML
+        let slotsHtml = '<div class="flow-slots">';
+        TIME_NODES.forEach((node, idx) => {
+            const items = groups[node.key];
+            const cnt = items.length;
+            const krw = Math.floor(items.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+            const hasItems = cnt > 0;
+
+            const chipsHtml = items.slice(0, 3).map(item => {
+                const meta = CAT_META[item.cat] || CAT_META['기타'];
+                const name = (item.name || '').slice(0, 5);
+                return `<div class="flow-chip">${meta.icon}${name}</div>`;
+            }).join('');
+            const moreHtml = items.length > 3
+                ? `<div class="flow-chip flow-chip-more">+${items.length - 3}개</div>` : '';
+
+            const krwLabel = krw > 0
+                ? `<div class="flow-slot-krw">${krw >= 10000 ? (krw / 10000).toFixed(1) + '만' : krw.toLocaleString()}원</div>` : '';
+
+            slotsHtml += `
+                <div class="flow-slot">
+                    <div class="flow-slot-dot ${hasItems ? 'has-items' : 'empty'}">
+                        ${node.icon}
+                        ${hasItems ? `<div class="flow-slot-badge">${cnt}</div>` : ''}
+                    </div>
+                    <div class="flow-slot-label">${node.key}</div>
+                    ${krwLabel}
+                    <div class="flow-slot-chips">${chipsHtml}${moreHtml}</div>
+                </div>
+            `;
+            if (idx < 2) slotsHtml += '<div class="flow-connector">›</div>';
+        });
+        slotsHtml += '</div>';
+
+        // 미정 행
+        let unsetHtml = '';
+        if (groups['미정'].length > 0) {
+            const chips = groups['미정'].map(item => {
+                const meta = CAT_META[item.cat] || CAT_META['기타'];
+                const name = (item.name || '').slice(0, 7);
+                return `<div class="flow-chip-unset">${meta.icon} ${name}</div>`;
+            }).join('');
+            unsetHtml = `<div class="flow-unset-row">
+                <span class="flow-unset-label">❓ 미정 ${groups['미정'].length}개</span>
+                ${chips}
+            </div>`;
+        }
+
+        // 요약
+        const summaryHtml = `<div class="flow-summary">
+            <span>${totalItems > 0 ? `총 ${totalItems}개 일정` : '아직 일정이 없어요 ✈️'}</span>
+            <span class="flow-summary-total">${totalKrw > 0 ? `예상 ${totalKrw.toLocaleString()}원` : ''}</span>
+        </div>`;
+
+        inner.innerHTML = slotsHtml + unsetHtml + summaryHtml;
+    }
+
+    // 시간대 메타
+    const TIME_META = {
+        '아침': { icon:'🌅', sh:'sh-morning', label:'아침' },
+        '점심': { icon:'☀️', sh:'sh-lunch',   label:'점심' },
+        '저녁': { icon:'🌙', sh:'sh-dinner',  label:'저녁' },
+        '미정': { icon:'❓', sh:'sh-unset',   label:'미정' },
+    };
+    const TIME_ORDER = ['아침','점심','저녁','미정'];
+
+    // 분류 메타
+    const CAT_META = {
+        '식사':  { icon:'🍽️', badge:'cb-meal',     mapEmoji:'🍽️', mapColor:'#B87C10' },
+        '장소':  { icon:'📍', badge:'cb-spot',     mapEmoji:'📍', mapColor:'#4361EE' },
+        '쇼핑':  { icon:'🛍️', badge:'cb-shopping', mapEmoji:'🛍️', mapColor:'#8B3FAB' },
+        '교통':  { icon:'🚃', badge:'cb-transit',  mapEmoji:'🚃', mapColor:'#277A50' },
+        '기타':  { icon:'📌', badge:'cb-etc',      mapEmoji:'📌', mapColor:'#6B7280' },
+    };
+
+    // 기존 데이터 마이그레이션 헬퍼
+    function migrateItem(item) {
+        if (item.timeSlot) return item; // 이미 새 구조
+        // 구버전 type 필드 → 새 구조로 변환
+        const OLD_TIME  = { '아침':'아침', '점심':'점심', '저녁':'저녁' };
+        const OLD_CAT   = { '장소':'장소', '쇼핑':'쇼핑', '교통':'교통', '기타':'기타' };
+        if (OLD_TIME[item.type]) return { ...item, timeSlot: item.type, cat: '식사' };
+        if (OLD_CAT[item.type])  return { ...item, timeSlot: '미정',    cat: item.type };
+        return { ...item, timeSlot: '미정', cat: '기타' };
+    }
 
     window.renderList = () => {
         const container = document.getElementById('expense-list-container');
@@ -538,54 +955,135 @@
         window.googleMarkers.forEach(m => m.setMap(null));
         window.googleMarkers = [];
 
+        // 호텔 마커
         const hotelDiv = document.createElement('div');
         hotelDiv.className = 'hotel-marker'; hotelDiv.innerHTML = '🏨';
         window.googleMarkers.push(new window.AdvancedMarkerElement({ map: window.googleMap, position: HOTEL_COORDS, content: hotelDiv }));
 
-        const daySchedule = (window.tripData.days && window.tripData.days[window.currentDay]) ? window.tripData.days[window.currentDay] : {};
+        // 자동 일정
         AUTO_SCHEDULE[window.currentDay].forEach(text => {
             const row = document.createElement('div');
-            row.innerHTML = `<div class="p-2 bg-light rounded-3 mb-2" style="font-size:12px; font-weight:600; border-left:4px solid #007bff; color:#555;">${text}</div>`;
+            row.innerHTML = `<div class="p-2 bg-light rounded-3 mb-2" style="font-size:12px; font-weight:600; border-left:4px solid #4361EE; color:#444;">${text}</div>`;
             container.appendChild(row);
         });
 
+        const rawSchedule = (window.tripData.days && window.tripData.days[window.currentDay]) ? window.tripData.days[window.currentDay] : {};
         const rate = (window.tripData.rate || 945) / 100;
+
+        // 마이그레이션 적용
+        const daySchedule = {};
+        Object.keys(rawSchedule).forEach(id => { daySchedule[id] = migrateItem(rawSchedule[id]); });
+
+        // 타임라인 흐름도 업데이트
+        updateDayFlow(daySchedule, rate);
+
+        // 시간대별 그룹핑
+        const groups = {};
         Object.keys(daySchedule).forEach(id => {
             const item = daySchedule[id];
-            const krw = Math.floor(item.jpy * rate);
-            const typeClassMap = { '아침':'bg-morning','점심':'bg-lunch','저녁':'bg-dinner','장소':'bg-spot','교통':'bg-transit','쇼핑':'bg-shopping','기타':'bg-etc' };
-            const typeClass = typeClassMap[item.type] || 'bg-etc';
-            const row = document.createElement('div');
-            row.className = "place-row";
-            row.innerHTML = `
-                <div class="item-info">
-                    <div class="item-title-row" style="display:flex; align-items:center;">
-                        <span class="type-badge ${typeClass}">${item.type}</span>
-                        <span class="item-name">${item.name}</span>
-                    </div>
-                    <div style="font-size:10px; color:#007bff; margin-left:45px; margin-bottom:2px;">${krw.toLocaleString()}원</div>
-                    <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
-                        onblur="updateComment('${id}', this.value)"
-                        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
-                </div>
-                <div class="price-area"><div class="input-group input-group-sm">
-                    <input type="number" class="form-control text-end" value="${item.jpy}" oninput="updatePrice('${id}', this.value)">
-                    <span class="input-group-text p-1" style="font-size:9px;">¥</span>
-                </div></div>
-                <button class="btn btn-link text-danger p-0 ms-1" onclick="deleteItem('${id}')" style="text-decoration:none;">✕</button>
-            `;
-            container.appendChild(row);
-            if (item.lat) {
-                const EMOJI_MAP = { '아침': '🌅', '점심': '🍜', '저녁': '🍷', '장소': '📍', '교통': '🚃', '쇼핑': '🛍️', '기타': '📌' };
-                const COLOR_MAP = { '아침': '#f08c00', '점심': '#2b8a3e', '저녁': '#e67700', '장소': '#007bff', '교통': '#2e7d32', '쇼핑': '#c2185b', '기타': '#777' };
-                const emoji = EMOJI_MAP[item.type] || '📌';
-                const color = COLOR_MAP[item.type] || '#555';
-                const pin = document.createElement('div');
-                pin.style.cssText = `background:${color};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
-                pin.textContent = emoji;
-                window.googleMarkers.push(new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin }));
-            }
+            const ts = item.timeSlot || '미정';
+            if (!groups[ts]) groups[ts] = [];
+            groups[ts].push({ id, item });
         });
+
+        const orderedTimes = [...TIME_ORDER.filter(t => groups[t]),
+                             ...TIME_ORDER.filter(t => !groups[t])];
+
+        orderedTimes.forEach(timeSlot => {
+            const entries = groups[timeSlot];
+            const meta = TIME_META[timeSlot] || TIME_META['미정'];
+            const subtotalJpy = entries.reduce((s, { item }) => s + (item.jpy || 0), 0);
+            const subtotalKrw = Math.floor(subtotalJpy * rate);
+
+            const section = document.createElement('div');
+            section.className = 'section-group';
+            section.dataset.timeslot = timeSlot;
+
+            // 시간대 헤더
+            const header = document.createElement('div');
+            header.className = `section-header ${meta.sh}`;
+            header.innerHTML = `
+                <div class="section-header-left">
+                    <span>${meta.icon}</span>
+                    <span>${meta.label}</span>
+                    <span style="font-size:10px; opacity:.6;">${entries.length}건</span>
+                </div>
+                <span class="section-subtotal">${subtotalKrw > 0 ? subtotalKrw.toLocaleString() + '원' : '-'}</span>
+            `;
+            section.appendChild(header);
+
+            // 드롭존
+            const zone = document.createElement('div');
+            zone.className = 'section-drop-zone';
+            zone.dataset.timeslot = timeSlot;
+            zone.innerHTML = `<div class="drop-hint">여기에 놓기</div>`;
+            setupDropZone(zone);
+
+            // 항목들
+            entries.forEach(({ id, item }) => {
+                const krw = Math.floor((item.jpy || 0) * rate);
+                const catM = CAT_META[item.cat] || CAT_META['기타'];
+                const row = document.createElement('div');
+                row.className = 'place-row';
+                row.draggable = false;
+                row.dataset.id = id;
+                row.innerHTML = `
+                    <span class="drag-handle" title="드래그해서 시간대 이동">⠿</span>
+                    <div class="item-info">
+                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+                            <select class="cat-select" onchange="updateCat('${id}', this.value)">
+                                <option value="식사" ${(item.cat||'기타')==='식사'?'selected':''}>🍽️ 식사</option>
+                                <option value="장소" ${(item.cat||'기타')==='장소'?'selected':''}>📍 장소</option>
+                                <option value="쇼핑" ${(item.cat||'기타')==='쇼핑'?'selected':''}>🛍️ 쇼핑</option>
+                                <option value="교통" ${(item.cat||'기타')==='교통'?'selected':''}>🚃 교통</option>
+                                <option value="기타" ${(!item.cat||item.cat==='기타')?'selected':''}>📌 기타</option>
+                            </select>
+                            <span class="item-name" style="flex:1; min-width:0;">${item.name}</span>
+                        </div>
+                        ${krw > 0 ? `<div style="font-size:10px; color:#4361EE; margin-bottom:1px;">${krw.toLocaleString()}원 · ¥${item.jpy}</div>` : ''}
+                        <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
+                            onblur="updateComment('${id}', this.value)"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+                    </div>
+                    <div class="price-area"><div class="input-group input-group-sm">
+                        <input type="number" class="form-control text-end" value="${item.jpy || ''}"
+                            data-price-id="${id}"
+                            onfocus="syncConverterFocus('${id}', this.value)"
+                            oninput="updatePrice('${id}', this.value); syncConverterInput(this.value)"
+                            onblur="window._editingPrice=false; window._focusedPriceId=null; renderList();">
+                        <span class="input-group-text p-1" style="font-size:9px;">¥</span>
+                    </div></div>
+                    <button class="btn btn-link text-danger p-0 ms-1" onclick="deleteItem('${id}')" style="text-decoration:none; font-size:13px;">✕</button>
+                `;
+
+                // 드래그 이벤트 — 핸들에서만 드래그 시작
+                const handleEl = row.querySelector('.drag-handle');
+                handleEl.addEventListener('mousedown', () => { row.draggable = true; });
+                handleEl.addEventListener('touchstart', () => { row.draggable = true; }, { passive: true });
+                row.addEventListener('dragstart', e => {
+                    e.dataTransfer.setData('text/plain', id);
+                    setTimeout(() => row.classList.add('dragging'), 0);
+                });
+                row.addEventListener('dragend', () => {
+                    row.classList.remove('dragging');
+                    row.draggable = false;
+                });
+
+                zone.appendChild(row);
+
+                // 지도 마커 (분류 기준)
+                if (item.lat) {
+                    const pin = document.createElement('div');
+                    pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
+                    pin.textContent = catM.mapEmoji;
+                    window.googleMarkers.push(new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin }));
+                }
+            });
+
+            section.appendChild(zone);
+            container.appendChild(section);
+        });
+
         updateGrandTotal();
     };
 
@@ -608,7 +1106,75 @@
 
     document.getElementById('global-rate').addEventListener('input', (e) => {
         update(dbRef, { rate: parseFloat(e.target.value) || 0 });
+        document.getElementById('rate-status').textContent = '✏️ 수동 입력됨';
     });
+
+    // 실시간 환율 fetch (frankfurter.app: JPY→KRW 100엔 기준)
+    window.fetchLiveRate = async () => {
+        const btn = document.getElementById('rate-refresh-btn');
+        const status = document.getElementById('rate-status');
+        btn.textContent = '⏳ 로딩중...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('https://api.frankfurter.app/latest?from=JPY&to=KRW');
+            const data = await res.json();
+            const ratePerYen = data.rates.KRW;          // 1엔 = ?원
+            const rate100 = Math.round(ratePerYen * 100); // 100엔 기준
+            document.getElementById('global-rate').value = rate100;
+            update(dbRef, { rate: rate100 });
+            const today = new Date().toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' });
+            status.textContent = `📡 ${today} 기준 · 1엔 ≈ ${ratePerYen.toFixed(2)}원`;
+            status.style.color = '#2E7A45';
+        } catch (e) {
+            status.textContent = '❌ 환율 조회 실패 (수동 입력)';
+            status.style.color = '#e03131';
+        } finally {
+            btn.textContent = '🔄 실시간';
+            btn.disabled = false;
+        }
+    };
+
+    // 엔 → 원 변환 공통 함수
+    function calcKrwValue(jpy) {
+        const rate = (parseFloat(document.getElementById('global-rate').value) || 945) / 100;
+        return isNaN(jpy) || !jpy ? null : Math.round(jpy * rate);
+    }
+    function setConverterDisplay(jpy) {
+        const result = document.getElementById('krw-result');
+        const val = calcKrwValue(parseFloat(jpy));
+        result.textContent = val !== null ? val.toLocaleString() : '-';
+        document.getElementById('jpy-input').value = jpy || '';
+    }
+
+    // 상단 변환기 입력 시
+    window.calcKrw = () => {
+        const jpy = parseFloat(document.getElementById('jpy-input').value);
+        const result = document.getElementById('krw-result');
+        const val = calcKrwValue(jpy);
+        result.textContent = val !== null ? val.toLocaleString() : '-';
+        // 연결된 항목의 ¥ input 실시간 반영 + Firebase 저장
+        if (window._focusedPriceId) {
+            const el = document.querySelector(`input[data-price-id="${window._focusedPriceId}"]`);
+            if (el) el.value = isNaN(jpy) ? '' : jpy;
+            updatePrice(window._focusedPriceId, isNaN(jpy) ? 0 : jpy);
+        }
+    };
+
+    // 리스트 항목 ¥ 포커스 시 → 변환기에 값 반영
+    window.syncConverterFocus = (id, val) => {
+        window._focusedPriceId = id;
+        setConverterDisplay(val);
+        document.getElementById('jpy-input').style.borderBottomColor = '#4361EE';
+        document.getElementById('krw-result').style.color = '#4361EE';
+    };
+
+    // 리스트 항목 ¥ 입력 시 → 변환기 동기화
+    window.syncConverterInput = (val) => {
+        setConverterDisplay(val);
+    };
+
+    // 앱 시작 시 자동으로 실시간 환율 가져오기
+    fetchLiveRate();
 
     // ── 체크리스트 ──
     const DEFAULT_ITEMS = [
