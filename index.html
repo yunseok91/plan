@@ -3,81 +3,403 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>도쿄 실시간 플래너</title>
+    <title>도쿄 실시간 플래너 :: 뱃지 연동형</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary-color: #007bff; --bg-light: #f4f7f6; }
         body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); margin: 0; padding: 0; overflow-x: hidden; }
-        .container-fluid { padding: 12px; padding-bottom: 90px; }
-        .map-card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 12px; overflow: hidden; height: 220px; background: #eee; }
+
+        /* ── 공통 카드 ── */
+        .map-card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; background: #eee; }
         #map { height: 100%; width: 100%; }
-        .top-control-card { border: none; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 10px; margin-bottom: 12px; }
-        .flex-row-custom { display: flex; align-items: center; gap: 8px; }
-        .rate-box { flex: 0 0 75px; text-align: center; }
-        .rate-box input { padding: 4px; font-size: 14px !important; font-weight: bold; text-align: center; }
-        .manual-box { flex: 1; min-width: 0; }
+        .top-control-card { margin: 10px 0px; border: none; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 10px; }
         .form-control, .form-select { border-radius: 8px; font-size: 16px !important; }
-        .nav-pills { flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding-bottom: 10px; }
+
+        /* ── 탭 ── */
+        .nav-pills {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            gap: 6px;
+            padding-bottom: 4px;
+            padding-left: 2px;
+            padding-right: 2px;
+            /* 스크롤바 숨김 */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
         .nav-pills::-webkit-scrollbar { display: none; }
-        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #eee; color: #666; padding: 6px 12px; font-size: 13px; }
+        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #eee; color: #666; padding: 6px 14px; font-size: 13px; flex-shrink: 0; }
         .nav-link.active { background-color: var(--primary-color) !important; color: #fff !important; }
-        .place-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f2f2f2; gap: 8px; }
+
+        /* ── 리스트 ── */
+        .place-row { display: flex; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f2f2f2; gap: 8px; }
         .item-info { flex: 1; min-width: 0; }
         .item-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .price-area { flex-shrink: 0; width: 85px; }
+        .price-area { flex-shrink: 0; width: 90px; }
+        .item-comment {
+            display: block; width: 100%; margin-top: 4px;
+            font-size: 11px; color: #666; background: transparent; border: none;
+            border-bottom: 1px dashed #ddd; outline: none; padding: 1px 2px;
+            font-family: inherit;
+        }
+        .item-comment:focus { border-bottom-color: #007bff; background: #f8faff; border-radius: 3px 3px 0 0; }
+        .item-comment::placeholder { color: #ccc; }
+
+        /* ── 뱃지 ── */
         .type-badge { font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
         .bg-morning { background: #fff3bf; color: #f08c00; }
-        .bg-lunch { background: #d3f9d8; color: #2b8a3e; }
-        .bg-dinner { background: #ffd8a8; color: #e67700; }
-        .bg-spot { background: #e7f1ff; color: #007bff; }
-        .footer-total { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 12px 15px; box-shadow: 0 -3px 10px rgba(0,0,0,0.05); z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
-        .total-amount { font-size: 18px; font-weight: 800; color: var(--primary-color); }
+        .bg-lunch   { background: #d3f9d8; color: #2b8a3e; }
+        .bg-dinner  { background: #ffd8a8; color: #e67700; }
+        .bg-spot    { background: #e7f1ff; color: #007bff; }
+        .bg-etc     { background: #f1f3f5; color: #495057; }
+
+        /* ── 호텔 마커 ── */
         .hotel-marker { background: #007bff; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+
+        /* ════════════════════════════════
+           MOBILE  (< 768px)
+        ════════════════════════════════ */
+        @media (max-width: 767px) {
+            .page-wrapper { padding: 12px; padding-bottom: 90px; }
+            .map-card { height: 220px; margin-bottom: 12px; }
+            .left-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+            .rate-row { display: flex; align-items: center; gap: 6px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:8px 12px; }
+            .top-control-card { margin: 0; }
+            .right-panel-header { margin-bottom: 12px; }
+            .right-panel-body { padding: 0; }
+            .footer-total { display: none; }
+            .pac-input-wrap { margin: 0; }
+            .footer-total {
+                position: fixed; bottom: 0; left: 0; right: 0;
+                background: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
+                padding: 12px 15px; box-shadow: 0 -3px 10px rgba(0,0,0,0.07);
+                z-index: 1000; display: flex; justify-content: space-between; align-items: center;
+            }
+        }
+
+        /* ════════════════════════════════
+           PC  (≥ 768px)
+        ════════════════════════════════ */
+        @media (min-width: 768px) {
+            body { background-color: #dde3ea; }
+            .page-wrapper {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 20px 24px 30px;
+            }
+
+            /* 헤더 */
+            .page-title {
+                background: #fff;
+                border-radius: 14px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                padding: 12px 20px;
+                margin-bottom: 16px;
+                font-size: 1rem;
+            }
+
+            /* 2-column grid */
+            .main-layout {
+                display: grid;
+                grid-template-columns: 380px 1fr;
+                gap: 16px;
+                align-items: start;
+            }
+
+            /* 왼쪽 패널 */
+            .left-panel {
+                display: flex; flex-direction: column; gap: 0;
+                position: sticky; top: 20px;
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+                overflow: hidden;
+            }
+            .map-card {
+                height: 360px;
+                border-radius: 0; box-shadow: none; margin: 0;
+            }
+            /* 왼쪽 패널 내부 컨트롤 영역 */
+            .left-controls {
+                padding: 14px 14px 16px;
+                display: flex; flex-direction: column; gap: 10px;
+            }
+            .top-control-card {
+                margin: 0; box-shadow: none; border-radius: 8px;
+                background: #f8f9fb; padding: 10px;
+            }
+            .rate-row {
+                display: flex; align-items: center; gap: 8px;
+                background: #f8f9fb; border-radius: 8px; padding: 8px 10px;
+            }
+            .pac-input-wrap { margin: 0; }
+            #pac-input { background: #f8f9fb; border: none !important; box-shadow: none !important; border-radius: 8px; }
+
+            /* 오른쪽 패널 */
+            .right-panel {
+                background: #fff;
+                border-radius: 16px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.09);
+                overflow: hidden;
+                min-height: 500px;
+                display: flex; flex-direction: column;
+            }
+            .right-panel-header {
+                padding: 14px 20px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            .right-panel-body {
+                padding: 14px 20px;
+                flex: 1; overflow-y: auto;
+            }
+            /* nav-pills in right panel */
+            .right-panel .nav-pills { margin-bottom: 0; padding-bottom: 12px; }
+
+            /* footer → sticky 하단 */
+            .footer-total {
+                border-top: 1px solid #f0f0f0;
+                padding: 12px 20px;
+                margin: 0;
+                display: flex; justify-content: space-between; align-items: center;
+                background: #fafbfc;
+            }
+        }
+
+        .total-amount { font-size: 18px; font-weight: 800; color: var(--primary-color); }
+
+        /* ── 체크리스트 모달 ── */
+        .cl-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 2000;
+            align-items: flex-end; justify-content: center;
+        }
+        .cl-overlay.open { display: flex; }
+        .cl-sheet {
+            background: #fff; width: 100%; max-width: 540px;
+            border-radius: 22px 22px 0 0;
+            padding: 0 0 env(safe-area-inset-bottom);
+            max-height: 82vh; display: flex; flex-direction: column;
+            animation: slideUp .25s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @media (min-width: 768px) {
+            .cl-overlay { align-items: center; }
+            .cl-sheet { border-radius: 18px; max-height: 70vh; }
+        }
+        .cl-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px 12px; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+        }
+        .cl-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
+        .cl-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
+        .cl-progress { padding: 8px 20px 0; font-size: 11px; color: #999; flex-shrink: 0; }
+        .cl-progress-bar-wrap { height: 4px; background: #f0f0f0; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
+        .cl-progress-bar { height: 100%; background: var(--primary-color); border-radius: 2px; transition: width .3s; }
+        .cl-body { overflow-y: auto; flex: 1; padding: 8px 20px 16px; }
+        .cl-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 0; border-bottom: 1px solid #f5f5f5;
+        }
+        .cl-item:last-child { border-bottom: none; }
+        .cl-checkbox {
+            width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ccc;
+            flex-shrink: 0; cursor: pointer; appearance: none; -webkit-appearance: none;
+            transition: background .15s, border-color .15s; position: relative;
+        }
+        .cl-checkbox:checked { background: var(--primary-color); border-color: var(--primary-color); }
+        .cl-checkbox:checked::after {
+            content: ''; position: absolute; left: 4px; top: 1px;
+            width: 6px; height: 10px; border: 2px solid #fff;
+            border-top: none; border-left: none; transform: rotate(45deg);
+        }
+        .cl-label { flex: 1; font-size: 14px; cursor: pointer; }
+        .cl-label.done { text-decoration: line-through; color: #bbb; }
+        .cl-del { background: none; border: none; color: #ddd; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+        .cl-del:hover { color: #e74c3c; }
+        .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
+        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #e0e0e0; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
+        .cl-add-row input:focus { border-color: var(--primary-color); }
+        .cl-add-row button { border-radius: 8px; background: var(--primary-color); color: #fff; border: none; padding: 7px 16px; font-size: 13px; cursor: pointer; }
+        .cl-section-label { font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: .5px; margin: 12px 0 4px; }
+
+        /* ── 회화 모달 ── */
+        .ph-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.45); z-index: 2000;
+            align-items: flex-end; justify-content: center;
+        }
+        .ph-overlay.open { display: flex; }
+        .ph-sheet {
+            background: #f6f8fc; width: 100%; max-width: 580px;
+            border-radius: 22px 22px 0 0;
+            max-height: 85vh; display: flex; flex-direction: column;
+            animation: slideUp .25s ease;
+        }
+        @media (min-width: 768px) {
+            .ph-overlay { align-items: center; }
+            .ph-sheet { border-radius: 18px; max-height: 78vh; }
+        }
+        .ph-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px 12px; background: #fff;
+            border-radius: 22px 22px 0 0; border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+        }
+        .ph-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
+        .ph-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
+        /* 카테고리 탭 */
+        .ph-tabs {
+            display: flex; overflow-x: auto; gap: 6px;
+            padding: 10px 16px; background: #fff;
+            border-bottom: 1px solid #f0f0f0; flex-shrink: 0;
+            scrollbar-width: none; -ms-overflow-style: none;
+        }
+        .ph-tabs::-webkit-scrollbar { display: none; }
+        .ph-tab {
+            white-space: nowrap; flex-shrink: 0;
+            border: 1px solid #e0e0e0; background: #fff; color: #666;
+            border-radius: 16px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+            font-family: inherit; font-weight: 500;
+        }
+        .ph-tab.active { background: #007bff; border-color: #007bff; color: #fff; font-weight: 700; }
+        /* 카드 목록 */
+        .ph-body { overflow-y: auto; flex: 1; padding: 12px 14px 20px; }
+        .ph-card {
+            background: #fff; border-radius: 12px;
+            padding: 12px 14px; margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            cursor: pointer; transition: box-shadow .15s;
+            position: relative;
+        }
+        .ph-card:active { box-shadow: 0 0 0 2px #007bff; }
+        .ph-korean { font-size: 12px; color: #888; margin-bottom: 4px; }
+        .ph-japanese { font-size: 17px; font-weight: 700; color: #222; letter-spacing: .5px; margin-bottom: 5px; }
+        .ph-pronun { font-size: 12px; color: #007bff; font-weight: 500; }
+        .ph-copy-hint { position: absolute; top: 10px; right: 12px; font-size: 10px; color: #ccc; }
+        .ph-copied { color: #28a745 !important; }
+        .ph-speak-btn {
+            border: none; background: #f0f6ff; color: #007bff;
+            border-radius: 50%; width: 28px; height: 28px;
+            font-size: 14px; cursor: pointer; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .15s;
+        }
+        .ph-speak-btn:active, .ph-speak-btn.speaking { background: #007bff; color: #fff; }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <h6 class="text-center fw-bold py-1">🐉🐏 도쿄 여행 플래너 (2026/04/08 ~ 2026/04/12)</h6>
-    <div class="map-card"><div id="map"></div></div>
-    <div class="rate-box">
-        <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945">
-        <div style="font-size:9px; color:#999; margin-top:2px;">환율(100엔)</div>
+<div class="page-wrapper">
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; padding: 4px 0 2px;" class="page-title">
+        <h6 class="fw-bold m-0"> 2026년 | 🗼도쿄 여행 계획 🐉🐏 </h6>
+        <button onclick="openChecklist()" style="border:none; background:#f0f6ff; color:#007bff; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🎒 준비물</button>
+        <button onclick="openPhrasebook()" style="border:none; background:#fff3e0; color:#e67700; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🗣️ 회화</button>
     </div>
-    <div class="top-control-card">
-        <div class="flex-row-custom">
 
-            <div class="manual-box">
-                <div class="input-group input-group-sm">
-                    <select id="manual-type" class="form-select px-1" style="max-width:70px; font-size:11px;">
-                        <option value="아침">아침</option><option value="점심" selected>점심</option>
-                        <option value="저녁">저녁</option><option value="장소">장소</option>
-                    </select>
-                    <input type="text" id="manual-name" class="form-control" placeholder="직접 추가" style="font-size:12px;">
-                    <button class="btn btn-primary px-2" onclick="addManualItem()">+</button>
+    <div class="main-layout">
+        <!-- ── 왼쪽 패널 ── -->
+        <div class="left-panel">
+            <div class="map-card"><div id="map"></div></div>
+
+            <div class="left-controls">
+                <!-- 환율 -->
+                <div class="rate-row">
+                    <span style="font-size:11px; color:#999; white-space:nowrap;">💱 환율 (100엔)</span>
+                    <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945" style="max-width:76px; font-weight:bold;">
+                    <span style="font-size:11px; color:#aaa; flex:1;">KRW</span>
+                </div>
+
+                <!-- 수기 추가 -->
+                <div class="top-control-card">
+                    <div style="font-size:10px; color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
+                    <div class="input-group input-group-sm">
+                        <select id="manual-type" class="form-select px-1" style="max-width:70px; font-size:11px;">
+                            <option value="아침">아침</option>
+                            <option value="점심" selected>점심</option>
+                            <option value="저녁">저녁</option>
+                            <option value="장소">장소</option>
+                        </select>
+                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:12px;">
+                        <button class="btn btn-primary px-2" onclick="addManualItem()">+</button>
+                    </div>
+                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-2" placeholder="💬 메모 (선택사항)" style="font-size:11px; border-radius:6px; color:#555; background:#fff;">
+                </div>
+
+                <!-- 장소 검색 -->
+                <div class="pac-input-wrap">
+                    <div style="font-size:10px; color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
+                    <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
                 </div>
             </div>
         </div>
+
+        <!-- ── 오른쪽 패널 ── -->
+        <div class="right-panel">
+            <div class="right-panel-header">
+                <ul class="nav nav-pills" id="pills-tab">
+                    <li class="nav-item"><button class="nav-link active" onclick="changeDay(this, 'day1')">4/8(수)</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day2')">4/9(목)</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day3')">4/10(금)</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day4')">4/11(토)</button></li>
+                    <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day5')">4/12(일)</button></li>
+                </ul>
+            </div>
+            <div class="right-panel-body">
+                <div id="expense-list-container"></div>
+            </div>
+            <div class="footer-total">
+                <span style="font-size:11px; color:#999;">✈️ 고정비 포함 총액</span>
+                <span class="total-amount"><span id="grand-total">0</span>원</span>
+            </div>
+        </div>
     </div>
-
-    <input id="pac-input" class="form-control shadow-sm border-0 mb-3" type="text" placeholder="📍 방문할 장소 검색">
-
-    <ul class="nav nav-pills mb-3" id="pills-tab">
-        <li class="nav-item"><button class="nav-link active" onclick="changeDay(this, 'day1')">4/8(수)</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day2')">4/9(목)</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day3')">4/10(금)</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day4')">4/11(토)</button></li>
-        <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day5')">4/12(일)</button></li>
-    </ul>
-
-    <div id="expense-list-container"></div>
 </div>
 
-<div class="footer-total">
+<!-- ── 체크리스트 모달 ── -->
+<div class="cl-overlay" id="cl-overlay" onclick="overlayClose(event)">
+    <div class="cl-sheet">
+        <div class="cl-header">
+            <h6>🎒 여행 준비물 체크리스트</h6>
+            <button class="cl-close" onclick="closeChecklist()">×</button>
+        </div>
+        <div class="cl-progress" id="cl-progress-text"></div>
+        <div class="cl-progress-bar-wrap"><div class="cl-progress-bar" id="cl-progress-bar"></div></div>
+        <div class="cl-body" id="cl-body"></div>
+        <div class="cl-add-row">
+            <select id="cl-new-cat" style="border-radius:8px; border:1px solid #e0e0e0; padding:7px 6px; font-size:12px; color:#555; outline:none; font-family:inherit; flex-shrink:0;">
+                <option value="서류">서류</option>
+                <option value="금융">금융</option>
+                <option value="전자기기">전자기기</option>
+                <option value="의류">의류</option>
+                <option value="세면도구">세면도구</option>
+                <option value="의약품">의약품</option>
+                <option value="기타" selected>기타</option>
+            </select>
+            <input type="text" id="cl-new-input" placeholder="항목 추가...">
+            <button onclick="addCheckItem()">추가</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── 회화 모달 ── -->
+<div class="ph-overlay" id="ph-overlay" onclick="phOverlayClose(event)">
+    <div class="ph-sheet">
+        <div class="ph-header">
+            <h6>🗣️ 일본어 여행 회화</h6>
+            <button class="ph-close" onclick="closePhrasebook()">×</button>
+        </div>
+        <div class="ph-tabs" id="ph-tabs"></div>
+        <div class="ph-body" id="ph-body"></div>
+    </div>
+</div>
+
+<!-- 모바일 전용 고정 푸터 (PC에서는 display:none) -->
+<div class="footer-total d-md-none" id="mobile-footer">
     <span style="font-size:11px; color:#666;">고정비 포함 총액</span>
-    <span class="total-amount"><span id="grand-total">0</span>원</span>
+    <span class="total-amount"><span id="grand-total-mobile">0</span>원</span>
 </div>
 
 <script type="module">
@@ -112,20 +434,17 @@
         day5: ["🏨 렘 롯폰기 체크아웃", "✈️ 비행기 (11:40~14:30)"]
     };
 
-    // [핵심] 구글 맵 로더 함수
     async function loadGoogleMaps() {
         const script = document.createElement('script');
-        // 아래 'YOUR_API_KEY' 부분을 실제 키로 교체하세요
         script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBCe7skkyYWeX4SSSUbDE3eWArx8PKgOS0&libraries=places&v=weekly`;
-        script.async = true;
-        script.defer = true;
+        script.async = true; script.defer = true;
         document.head.appendChild(script);
 
         script.onload = async () => {
             const { Map } = await google.maps.importLibrary("maps");
             const { Autocomplete } = await google.maps.importLibrary("places");
             const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-            
+
             window.AdvancedMarkerElement = AdvancedMarkerElement;
             window.googleMap = new Map(document.getElementById("map"), {
                 center: HOTEL_COORDS, zoom: 14, mapId: "TOKYO_FINAL_UI", disableDefaultUI: true
@@ -135,8 +454,16 @@
             autocomplete.addListener("place_changed", () => {
                 const place = autocomplete.getPlace();
                 if (!place.geometry) return;
+                const selectedType = document.getElementById('manual-type').value;
                 const newItemRef = push(ref(db, `tokyo_trip/days/${window.currentDay}`));
-                set(newItemRef, { name: place.name, type: "장소", jpy: 0, lat: place.geometry.location.lat(), lng: place.geometry.location.lng() });
+                set(newItemRef, {
+                    name: place.name,
+                    type: selectedType,
+                    jpy: 0,
+                    comment: "",
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                });
                 document.getElementById("pac-input").value = "";
             });
             renderList();
@@ -153,12 +480,23 @@
     });
 
     window.addManualItem = () => {
-        const name = document.getElementById('manual-name').value;
+        const name = document.getElementById('manual-name').value.trim();
         const type = document.getElementById('manual-type').value;
+        const comment = document.getElementById('manual-comment').value.trim();
         if (!name) return;
-        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, type, jpy: 0 });
+        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, type, jpy: 0, comment });
         document.getElementById('manual-name').value = "";
+        document.getElementById('manual-comment').value = "";
     };
+
+    // Enter 키로 항목 추가 (이름 입력란 → 메모 입력란으로 포커스 이동)
+    document.getElementById('manual-name').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('manual-comment').focus(); }
+    });
+    // 메모 입력란에서 Enter → 추가
+    document.getElementById('manual-comment').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); window.addManualItem(); }
+    });
 
     window.changeDay = (btn, day) => {
         window.currentDay = day;
@@ -171,11 +509,17 @@
         update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { jpy: parseFloat(val) || 0 });
     };
 
-    window.deleteItem = (id) => { if(confirm("삭제할까요?")) remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`)); };
+    window.updateComment = (id, val) => {
+        update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { comment: val });
+    };
+
+    window.deleteItem = (id) => {
+        if (confirm("삭제할까요?")) remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`));
+    };
 
     window.renderList = () => {
         const container = document.getElementById('expense-list-container');
-        if(!container || !window.googleMap || !window.AdvancedMarkerElement) return;
+        if (!container || !window.googleMap || !window.AdvancedMarkerElement) return;
         container.innerHTML = "";
         window.googleMarkers.forEach(m => m.setMap(null));
         window.googleMarkers = [];
@@ -200,11 +544,14 @@
             row.className = "place-row";
             row.innerHTML = `
                 <div class="item-info">
-                    <div class="item-title-row">
+                    <div class="item-title-row" style="display:flex; align-items:center;">
                         <span class="type-badge ${typeClass}">${item.type}</span>
                         <span class="item-name">${item.name}</span>
                     </div>
-                    <div style="font-size:10px; color:#007bff; margin-left:45px;">${krw.toLocaleString()}원</div>
+                    <div style="font-size:10px; color:#007bff; margin-left:45px; margin-bottom:2px;">${krw.toLocaleString()}원</div>
+                    <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
+                        onblur="updateComment('${id}', this.value)"
+                        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
                 </div>
                 <div class="price-area"><div class="input-group input-group-sm">
                     <input type="number" class="form-control text-end" value="${item.jpy}" oninput="updatePrice('${id}', this.value)">
@@ -213,7 +560,7 @@
                 <button class="btn btn-link text-danger p-0 ms-1" onclick="deleteItem('${id}')" style="text-decoration:none;">✕</button>
             `;
             container.appendChild(row);
-            if(item.lat) window.googleMarkers.push(new google.maps.Marker({ position: {lat: item.lat, lng: item.lng}, map: window.googleMap }));
+            if (item.lat) window.googleMarkers.push(new google.maps.Marker({ position: { lat: item.lat, lng: item.lng }, map: window.googleMap }));
         });
         updateGrandTotal();
     };
@@ -221,17 +568,311 @@
     function updateGrandTotal() {
         const rate = (window.tripData.rate || 945) / 100;
         let totalJpyInKrw = 0;
-        if(window.tripData.days) {
+        if (window.tripData.days) {
             Object.values(window.tripData.days).forEach(day => {
-                if(day) Object.values(day).forEach(item => { totalJpyInKrw += (item.jpy * rate); });
+                if (day) Object.values(day).forEach(item => { totalJpyInKrw += (item.jpy * rate); });
             });
         }
-        document.getElementById('grand-total').innerText = Math.floor(totalJpyInKrw + FIXED_KRW).toLocaleString();
+        const total = Math.floor(totalJpyInKrw + FIXED_KRW).toLocaleString();
+        // PC용 (right-panel 내부)
+        const el = document.getElementById('grand-total');
+        if (el) el.innerText = total;
+        // 모바일용 (고정 푸터)
+        const elM = document.getElementById('grand-total-mobile');
+        if (elM) elM.innerText = total;
     }
 
-    document.getElementById('global-rate').addEventListener('input', (e) => { update(dbRef, { rate: parseFloat(e.target.value) || 0 }); });
+    document.getElementById('global-rate').addEventListener('input', (e) => {
+        update(dbRef, { rate: parseFloat(e.target.value) || 0 });
+    });
 
-    // 실행!
+    // ── 체크리스트 ──
+    const DEFAULT_ITEMS = [
+        { cat: '서류', text: '여권' },
+        { cat: '서류', text: '항공권 (모바일)' },
+        { cat: '서류', text: '숙소 예약 확인서' },
+        { cat: '서류', text: '여행자 보험 증서' },
+        { cat: '금융', text: '환전 현금 (엔)' },
+        { cat: '금융', text: '신용카드 / 체크카드' },
+        { cat: '전자기기', text: '스마트폰 충전기' },
+        { cat: '전자기기', text: '보조 배터리' },
+        { cat: '전자기기', text: '이어폰' },
+        { cat: '전자기기', text: '변환 플러그 (일본 110V)' },
+        { cat: '전자기기', text: '카메라 + 메모리카드' },
+        { cat: '의류', text: '옷 (5일치)' },
+        { cat: '의류', text: '속옷 / 양말' },
+        { cat: '의류', text: '편한 신발' },
+        { cat: '의류', text: '가벼운 겉옷 / 카디건' },
+        { cat: '세면도구', text: '칫솔 / 치약' },
+        { cat: '세면도구', text: '샴푸 / 린스' },
+        { cat: '세면도구', text: '선크림' },
+        { cat: '의약품', text: '진통제 (타이레놀 등)' },
+        { cat: '의약품', text: '소화제 / 지사제' },
+        { cat: '기타', text: '우산 / 우비' },
+        { cat: '기타', text: '에코백 / 보조 가방' },
+    ];
+
+    const clRef = ref(db, 'tokyo_trip/checklist');
+    let clData = {};
+
+    onValue(clRef, (snap) => {
+        clData = snap.val() || {};
+        // 첫 로드 시 기본 항목 삽입
+        if (Object.keys(clData).length === 0) {
+            DEFAULT_ITEMS.forEach(item => {
+                set(push(clRef), { text: item.text, cat: item.cat, checked: false });
+            });
+        } else {
+            renderChecklist();
+        }
+    });
+
+    function renderChecklist() {
+        const body = document.getElementById('cl-body');
+        if (!body) return;
+        body.innerHTML = '';
+
+        const items = Object.entries(clData).sort((a, b) => (a[1].cat || '').localeCompare(b[1].cat || ''));
+        const total = items.length;
+        const done = items.filter(([, v]) => v.checked).length;
+
+        // 진행률
+        const pct = total ? Math.round(done / total * 100) : 0;
+        document.getElementById('cl-progress-text').textContent = `${done} / ${total} 완료`;
+        document.getElementById('cl-progress-bar').style.width = pct + '%';
+
+        // 카테고리 그룹핑
+        let lastCat = null;
+        items.forEach(([id, item]) => {
+            if (item.cat !== lastCat) {
+                lastCat = item.cat;
+                const lbl = document.createElement('div');
+                lbl.className = 'cl-section-label';
+                lbl.textContent = item.cat || '기타';
+                body.appendChild(lbl);
+            }
+            const row = document.createElement('div');
+            row.className = 'cl-item';
+            row.innerHTML = `
+                <input type="checkbox" class="cl-checkbox" id="cl-${id}" ${item.checked ? 'checked' : ''}
+                    onchange="toggleCheckItem('${id}', this.checked)">
+                <label class="cl-label ${item.checked ? 'done' : ''}" for="cl-${id}">${item.text}</label>
+                <button class="cl-del" onclick="deleteCheckItem('${id}')">✕</button>
+            `;
+            body.appendChild(row);
+        });
+    }
+
+    window.openChecklist = () => {
+        document.getElementById('cl-overlay').classList.add('open');
+        renderChecklist();
+    };
+    window.closeChecklist = () => document.getElementById('cl-overlay').classList.remove('open');
+    window.overlayClose = (e) => { if (e.target === document.getElementById('cl-overlay')) window.closeChecklist(); };
+
+    window.toggleCheckItem = (id, checked) => update(ref(db, `tokyo_trip/checklist/${id}`), { checked });
+    window.deleteCheckItem = (id) => remove(ref(db, `tokyo_trip/checklist/${id}`));
+    window.addCheckItem = () => {
+        const input = document.getElementById('cl-new-input');
+        const cat = document.getElementById('cl-new-cat').value;
+        const text = input.value.trim();
+        if (!text) return;
+        set(push(clRef), { text, cat, checked: false });
+        input.value = '';
+    };
+    document.getElementById('cl-new-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); window.addCheckItem(); }
+    });
+
+    // ── 회화 ──
+    const PHRASES = [
+        // 기본
+        { cat: '기본', ko: '안녕하세요.', jp: 'こんにちは。', pr: '콘니치와 ↘' },
+        { cat: '기본', ko: '감사합니다.', jp: 'ありがとうございます。', pr: '아리가토~고자이마스 ↘' },
+        { cat: '기본', ko: '죄송합니다 / 실례합니다.', jp: 'すみません。', pr: '스미마셍 ↗' },
+        { cat: '기본', ko: '괜찮아요.', jp: '大丈夫です。', pr: '다이죠~부데스 ↘' },
+        { cat: '기본', ko: '모르겠어요. / 이해 못 했어요.', jp: 'わかりません。', pr: '와카리마셍 ↘' },
+        { cat: '기본', ko: '일본어를 잘 못해요.', jp: '日本語があまり上手じゃないです。', pr: '니홍고가 아마리 죠~즈쟈나이데스 ↘' },
+        { cat: '기본', ko: '한국어 할 수 있는 분 있나요?', jp: '韓国語できる方いますか。', pr: '칸코쿠고 데키루카타 이마스까 ↗' },
+        { cat: '기본', ko: '화장실은 어디인가요?', jp: 'トイレはどこですか。', pr: '토이레와 도코데스까 ↗' },
+        { cat: '기본', ko: '사진 좀 찍어주실 수 있나요?', jp: '写真撮ってもらえますか。', pr: '샤신 톳떼 모라에마스까 ↗' },
+        // 식당/카페
+        { cat: '식당/카페', ko: '두 명이에요.', jp: '2人です。', pr: '후타리데스 ↘' },
+        { cat: '식당/카페', ko: '메뉴판 주세요.', jp: 'メニューをください。', pr: '메뉴~오 구다사이 ↘' },
+        { cat: '식당/카페', ko: '추천 메뉴는 무엇인가요?', jp: 'おすすめは何ですか。', pr: '오스스메와 난데스까 ↗' },
+        { cat: '식당/카페', ko: '생맥주 하나 주세요.', jp: '生ビール一つください。', pr: '나마비~루 히토츠 구다사이 ↘' },
+        { cat: '식당/카페', ko: '저것과 똑같은 걸로 주세요.', jp: 'あれと同じものください。', pr: '아레또 오나지모노 구다사이 ↘' },
+        { cat: '식당/카페', ko: '맛있어요!', jp: 'おいしい！', pr: '오이시이! ↗' },
+        { cat: '식당/카페', ko: '얼마나 기다려야 하나요?', jp: 'どのくらい待ちますか。', pr: '도노쿠라이 마치마스까 ↗' },
+        { cat: '식당/카페', ko: '따로따로 계산할게요.', jp: '別々に会計します。', pr: '베츠베츠니 카이케이 시마스 ↘' },
+        { cat: '식당/카페', ko: '계산서 주세요.', jp: 'お会計をお願いします。', pr: '오카이케이오 오네가이시마스 ↘' },
+        { cat: '식당/카페', ko: '물 좀 주세요.', jp: 'おひや(お水)ください。', pr: '오히야(미즈) 구다사이 ↘' },
+        { cat: '식당/카페', ko: '물티슈 주세요.', jp: 'ウェットティッシュください。', pr: '웨또 티슈 구다사이 ↘' },
+        { cat: '식당/카페', ko: '소금 좀 주세요.', jp: '塩をください。', pr: '시오 구다사이 ↘' },
+        { cat: '식당/카페', ko: '이거 안 시켰어요.', jp: 'これ、頼んでいません。', pr: '고레, 타논데 이마셍 ↘' },
+        { cat: '식당/카페', ko: '이거 달라요. (잘못 나온 것 같을 때)', jp: 'これ、違います。', pr: '고레, 치가이마스 ↘' },
+        { cat: '식당/카페', ko: '요리를 바꿔주세요.', jp: '料理を変えてください。', pr: '료~리오 카에테 구다사이 ↘' },
+        { cat: '식당/카페', ko: '이거 취소해 주세요.', jp: 'これキャンセルお願いします。', pr: '고레 캰세루 오네가이시마스 ↘' },
+        { cat: '식당/카페', ko: '주문 확인해 주세요.', jp: '注文の確認をお願いします。', pr: '츄몬노 카쿠닌 오네가이시마스 ↘' },
+        { cat: '식당/카페', ko: '이거 매워요?', jp: 'これ辛いですか。', pr: '고레 카라이데스까 ↗' },
+        { cat: '식당/카페', ko: '남은 거 포장 되나요?', jp: '持ち帰りできますか。', pr: '모치카에리 데키마스까 ↗' },
+        { cat: '식당/카페', ko: '저쪽에 앉고 싶어요.', jp: 'あそこに座りたいです。', pr: '아소코니 스와리타이데스 ↘' },
+        { cat: '식당/카페', ko: '테이블 좀 닦아주세요.', jp: 'テーブル拭いてください。', pr: '테~부루 후이테 구다사이 ↘' },
+        { cat: '식당/카페', ko: '이거 하나 주세요.', jp: 'これ一つください。', pr: '고레 히토츠 구다사이 ↘' },
+        { cat: '식당/카페', ko: '가장 인기 있는 건 뭔가요?', jp: '何が一番人気ですか。', pr: '나니가 이치방 닝끼데스까 ↗' },
+        { cat: '식당/카페', ko: '젓가락 하나 (더) 주세요.', jp: 'お箸一つください。', pr: '오하시 히토츠 구다사이 ↘' },
+        { cat: '식당/카페', ko: '(종이) 앞치마 있나요?', jp: '(紙)エプロンありますか。', pr: '(카미) 에푸론 아리마스까 ↗' },
+        { cat: '식당/카페', ko: '카드로 할게요.', jp: 'カードでお願いします。', pr: '카~도데 오네가이시마스 ↘' },
+        { cat: '식당/카페', ko: '현금으로 할게요.', jp: '現金でお願いします。', pr: '겐킨데 오네가이시마스 ↘' },
+        { cat: '식당/카페', ko: '[단어] 젓가락 / 숟가락', jp: 'お箸 / スプーン', pr: '오하시 / 스푸~운' },
+        { cat: '식당/카페', ko: '[단어] 냅킨 / 티슈', jp: 'ナプキン / ティッシュ', pr: '나푸킨 / 티슈' },
+        // 쇼핑
+        { cat: '쇼핑', ko: '이거 얼마인가요?', jp: 'これいくらですか。', pr: '고레 이쿠라데스까 ↗' },
+        { cat: '쇼핑', ko: '면세 되나요?', jp: '免税できますか。', pr: '멘제이 데키마스까 ↗' },
+        { cat: '쇼핑', ko: '카드 되나요?', jp: 'カード使えますか。', pr: '카~도 츠카에마스까 ↗' },
+        { cat: '쇼핑', ko: '일시불로 해주세요.', jp: '一括でお願いします。', pr: '잇카츠데 오네가이시마스 ↘' },
+        { cat: '쇼핑', ko: '봉투 하나 주세요.', jp: '袋を1つください。', pr: '후쿠로~ 히토츠 구다사이 ↘' },
+        { cat: '쇼핑', ko: '다른 색깔 있나요?', jp: '別の色(色違い)ありますか。', pr: '이로치가이와 아리마셍까 ↗' },
+        { cat: '쇼핑', ko: '입어봐도 될까요?', jp: '試着してもいいですか。', pr: '시챠쿠 시테모 이이데스까 ↗' },
+        { cat: '쇼핑', ko: '영수증 주세요.', jp: 'レシートをください。', pr: '레시~토오 구다사이 ↘' },
+        // 대중교통
+        { cat: '대중교통', ko: '역은 어디인가요?', jp: '駅はどこですか。', pr: '에키와 도코데스까 ↗' },
+        { cat: '대중교통', ko: '(목적지)까지 가주세요.', jp: '〜までお願いします。', pr: '(~마데) 오네가이시마스 ↘' },
+        { cat: '대중교통', ko: '이 전철 롯폰기역에 가나요?', jp: 'この電車は六本木駅に行きますか。', pr: '코노 덴샤와 롯폰기에키니 이키마스까 ↗' },
+        { cat: '대중교통', ko: '여기서 내릴게요.', jp: 'ここで降ります。', pr: '고코데 오리마스 ↘' },
+        { cat: '대중교통', ko: '이 버스는 (장소)에 가나요?', jp: 'このバスは〜に行きますか。', pr: '코노 바스와 ~니 이키마스까 ↗' },
+        { cat: '대중교통', ko: '스이카로 탈 수 있나요?', jp: 'Suicaで乗れますか。', pr: '스이카데 노레마스까 ↗' },
+        // 숙소/호텔
+        { cat: '숙소/호텔', ko: '체크인 부탁합니다.', jp: 'チェックインお願いします。', pr: '체쿠인 오네가이시마스 ↘' },
+        { cat: '숙소/호텔', ko: '체크아웃 부탁합니다.', jp: 'チェックアウトお願いします。', pr: '체쿠아우토 오네가이시마스 ↘' },
+        { cat: '숙소/호텔', ko: '짐을 좀 맡아주실 수 있나요?', jp: '荷物を預かってもらえますか。', pr: '니모츠오 아즈캇테 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '수건을 더 받을 수 있나요?', jp: 'タオルもっともらえますか。', pr: '타오루 못또 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '방에 열쇠를 두고 나왔어요.', jp: '部屋に鍵を置いたまま出ました。', pr: '헤야니 카기오 오이따마마 데마시타 ↘' },
+        { cat: '숙소/호텔', ko: 'Wi-Fi 비밀번호가 뭔가요?', jp: 'Wi-Fiのパスワードは何ですか。', pr: '와이파이노 파스와~도와 난데스까 ↗' },
+        { cat: '숙소/호텔', ko: '얼리 체크인 되나요?', jp: 'アーリーチェックインできますか。', pr: '아~리 체쿠인 데키마스까 ↗' },
+        { cat: '숙소/호텔', ko: '(체크인 전) 짐을 맡아주실 수 있나요?', jp: 'チェックインの前に荷物を預かってもらえますか。', pr: '체쿠인노 마에니 니모츠오 아즈캇테 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '~~ 가능한가요?', jp: '〜〜できますか。', pr: '~~ 데키마스까 ↗' },
+        { cat: '숙소/호텔', ko: '~~ 안 되나요?', jp: '〜〜できませんか。/ だめですか。', pr: '~~ 데키마셍까 ↗ / 다메데스까 ↗' },
+        { cat: '숙소/호텔', ko: '얼음 있나요?', jp: '氷ありますか。', pr: '코~리 아리마스까 ↗' },
+        { cat: '숙소/호텔', ko: '샴푸 좀 더 받을 수 있나요?', jp: 'シャンプーもっともらえますか。', pr: '샴푸~ 못또 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '바디워시 좀 더 받을 수 있나요?', jp: 'ボディソープもっともらえますか。', pr: '보디소~푸 못또 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '어메니티 좀 더 받을 수 있나요?', jp: 'アメニティもっともらえますか。', pr: '아메니티 못또 모라에마스까 ↗' },
+        { cat: '숙소/호텔', ko: '방이 추워요.', jp: '部屋が寒いです。', pr: '헤야가 사무이데스 ↘' },
+        // 편의점
+        { cat: '편의점', ko: '[직원] 포인트 카드 있으신가요?', jp: 'ポイントカードはお持ちですか。', pr: '포인토 카~도와 오모치데스까 ↗' },
+        { cat: '편의점', ko: '[나] 아니요, 없습니다.', jp: 'いいえ、ないです。', pr: '이~에, 나이데스 ↘' },
+        { cat: '편의점', ko: '[직원] 봉투 필요하세요?', jp: 'レジ袋はご利用ですか。', pr: '레지부쿠로와 고리요~데스까 ↗' },
+        { cat: '편의점', ko: '[나] 네, 봉투 하나 주세요.', jp: 'はい、袋を1つください。', pr: '하이, 후쿠로~ 히토츠 구다사이 ↘' },
+        { cat: '편의점', ko: '[나] 아니요, 괜찮습니다.', jp: 'いいえ、大丈夫です。', pr: '이~에, 다이조~부데스 ↘' },
+        { cat: '편의점', ko: '[직원] 데워드릴까요?', jp: 'お弁当、温めますか。', pr: '오벤토~, 아타타메마스까 ↗' },
+        { cat: '편의점', ko: '[나] 네, 데워주세요.', jp: 'はい、温めてください。', pr: '하이, 아타타메테 구다사이 ↘' },
+        { cat: '편의점', ko: '[직원] 젓가락 넣어드릴까요?', jp: 'お箸はおつけしますか。', pr: '오하시와 오츠케시마스까 ↗' },
+        { cat: '편의점', ko: '[나] 네, 젓가락 하나 주세요.', jp: 'お箸ください。', pr: '오하시 구다사이 ↘' },
+        { cat: '편의점', ko: '[직원] 결제는 어떻게 하시겠어요?', jp: 'お支払いはどうしますか。', pr: '오시하라이와 도~시마스까 ↗' },
+        { cat: '편의점', ko: '[나] 카드로 부탁합니다.', jp: 'カードでお願いします。', pr: '카~도데 오네가이시마스 ↘' },
+        { cat: '편의점', ko: '[나] 현금으로 부탁합니다.', jp: '現金でお願いします。', pr: '겐킨데 오네가이시마스 ↘' },
+        { cat: '편의점', ko: '[나] 스이카(교통카드)로 할게요.', jp: 'スイカでお願いします。', pr: '스이카데 오네가이시마스 ↘' },
+        // 숫자
+        { cat: '숫자', ko: '1 (いち)', jp: '一', pr: '이치' },
+        { cat: '숫자', ko: '2 (に)', jp: '二', pr: '니' },
+        { cat: '숫자', ko: '3 (さん)', jp: '三', pr: '산' },
+        { cat: '숫자', ko: '4 (し / よん)', jp: '四', pr: '시 / 욘' },
+        { cat: '숫자', ko: '5 (ご)', jp: '五', pr: '고' },
+        { cat: '숫자', ko: '6 (ろく)', jp: '六', pr: '로쿠' },
+        { cat: '숫자', ko: '7 (しち / なな)', jp: '七', pr: '시치 / 나나' },
+        { cat: '숫자', ko: '8 (はち)', jp: '八', pr: '하치' },
+        { cat: '숫자', ko: '9 (く / きゅう)', jp: '九', pr: '쿠 / 큐~' },
+        { cat: '숫자', ko: '10 (じゅう)', jp: '十', pr: '쥬~' },
+        { cat: '숫자', ko: '100 (ひゃく)', jp: '百', pr: '햐쿠' },
+        { cat: '숫자', ko: '1,000 (せん)', jp: '千', pr: '센' },
+        { cat: '숫자', ko: '10,000 (いちまん)', jp: '一万', pr: '이치만' },
+        { cat: '숫자', ko: '500엔', jp: '五百円', pr: '고햐쿠엔' },
+        { cat: '숫자', ko: '1,000엔', jp: '千円', pr: '센엔' },
+        { cat: '숫자', ko: '3,000엔', jp: '三千円', pr: '산젠엔' },
+        { cat: '숫자', ko: '5,000엔', jp: '五千円', pr: '고센엔' },
+        { cat: '숫자', ko: '10,000엔', jp: '一万円', pr: '이치만엔' },
+        { cat: '숫자', ko: '1개', jp: '一つ', pr: '히토츠' },
+        { cat: '숫자', ko: '2개', jp: '二つ', pr: '후타츠' },
+        { cat: '숫자', ko: '3개', jp: '三つ', pr: '밋츠' },
+        // 위급/기타
+        { cat: '위급/기타', ko: '도와주세요!', jp: '助けてください！', pr: '타스케테 구다사이! ↗↑' },
+        { cat: '위급/기타', ko: '경찰을 불러주세요.', jp: '警察を呼んでください。', pr: '케이사츠오 욘데 구다사이 ↘' },
+        { cat: '위급/기타', ko: '구급차를 불러주세요.', jp: '救急車を呼んでください。', pr: '큐~큐~샤오 욘데 구다사이 ↘' },
+        { cat: '위급/기타', ko: '여기가 아파요.', jp: 'ここが痛いです。', pr: '고코가 이타이데스 ↘' },
+        { cat: '위급/기타', ko: '지갑을 잃어버렸어요.', jp: '財布をなくしました。', pr: '사이후오 나쿠시마시타 ↘' },
+    ];
+
+    const PH_CATS = ['전체', '기본', '숫자', '식당/카페', '편의점', '쇼핑', '대중교통', '숙소/호텔', '위급/기타'];
+    let phCurrentCat = '전체';
+
+    function renderPhrasebook() {
+        // 탭
+        const tabs = document.getElementById('ph-tabs');
+        tabs.innerHTML = '';
+        PH_CATS.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = 'ph-tab' + (cat === phCurrentCat ? ' active' : '');
+            btn.textContent = cat;
+            btn.onclick = () => { phCurrentCat = cat; renderPhrasebook(); };
+            tabs.appendChild(btn);
+        });
+        // 카드
+        const body = document.getElementById('ph-body');
+        body.innerHTML = '';
+        const list = phCurrentCat === '전체' ? PHRASES : PHRASES.filter(p => p.cat === phCurrentCat);
+        list.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'ph-card';
+            const jpSafe = p.jp.replace(/'/g, '&#39;');
+            card.innerHTML = `
+                <div class="ph-copy-hint" id="hint-${body.children.length}">탭하면 복사</div>
+                <div class="ph-korean">${p.cat} &nbsp;·&nbsp; ${p.ko}</div>
+                <div class="ph-japanese">${p.jp}</div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+                    <span class="ph-pronun">📖 ${p.pr}</span>
+                    <button class="ph-speak-btn" onclick="event.stopPropagation(); speakJapanese('${jpSafe}', this)">🔊</button>
+                </div>
+            `;
+            card.onclick = () => {
+                navigator.clipboard.writeText(p.jp).catch(() => {});
+                const hint = card.querySelector('.ph-copy-hint');
+                hint.textContent = '복사됨 ✓';
+                hint.classList.add('ph-copied');
+                setTimeout(() => { hint.textContent = '탭하면 복사'; hint.classList.remove('ph-copied'); }, 1500);
+            };
+            body.appendChild(card);
+        });
+    }
+
+    // 일본어 TTS
+    window.speakJapanese = (text, btn) => {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = 'ja-JP';
+        utter.rate = 0.9;
+        // 일본어 음성 우선 선택
+        const voices = window.speechSynthesis.getVoices();
+        const jaVoice = voices.find(v => v.lang.startsWith('ja'));
+        if (jaVoice) utter.voice = jaVoice;
+        btn.classList.add('speaking');
+        utter.onend = () => btn.classList.remove('speaking');
+        utter.onerror = () => btn.classList.remove('speaking');
+        window.speechSynthesis.speak(utter);
+    };
+    // 음성 목록 미리 로드 (iOS/Android 대응)
+    if (window.speechSynthesis) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+    }
+
+    window.openPhrasebook = () => {
+        document.getElementById('ph-overlay').classList.add('open');
+        renderPhrasebook();
+    };
+    window.closePhrasebook = () => document.getElementById('ph-overlay').classList.remove('open');
+    window.phOverlayClose = (e) => { if (e.target === document.getElementById('ph-overlay')) window.closePhrasebook(); };
+
     loadGoogleMaps();
 </script>
 
