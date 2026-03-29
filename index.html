@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #4361EE; --bg-light: #F5F3EF; }
+        :root { --primary-color: #111111; --bg-light: #F0F0EE; }
         body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); margin: 0; padding: 0; overflow-x: hidden; }
         
         /* ── 공통 카드 ── */
@@ -32,8 +32,8 @@
             -ms-overflow-style: none;
         }
         .nav-pills::-webkit-scrollbar { display: none; }
-        .nav-link { white-space: nowrap; border-radius: 18px; background: #FDFCFB; border: 1px solid #E5E2DC; color: #555; padding: 6px 14px; font-size: 13px; flex-shrink: 0; }
-        .nav-link.active { background-color: var(--primary-color) !important; color: #fff !important; }
+        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #E8E8E8; color: #444; padding: 6px 14px; font-size: 13px; flex-shrink: 0; font-weight: 500; }
+        .nav-link.active { background-color: #111 !important; color: #fff !important; border-color: #111 !important; }
 
         /* ── 섹션 그룹 ── */
         .section-group { margin-bottom: 14px; }
@@ -46,32 +46,32 @@
 
         /* 섹션별 색상 */
         /* 시간대 섹션 헤더 */
-        .sh-morning  { background: #FEFBF2; color: #B87C10; }
-        .sh-lunch    { background: #F0F7F2; color: #2E7A45; }
-        .sh-dinner   { background: #FEF5EE; color: #C96620; }
-        .sh-unset    { background: #F4F4F6; color: #6B7280; }
+        .sh-morning  { background: #FFFCF2; color: #6B4E10; }
+        .sh-lunch    { background: #F3FBF5; color: #1A5C35; }
+        .sh-dinner   { background: #FFF5F2; color: #7A2C10; }
+        .sh-unset    { background: #F3F3F3; color: #666; }
 
         /* 분류 뱃지 */
         .cat-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; flex-shrink: 0; }
-        .cb-meal     { background: #FEF9ED; color: #B87C10; }
-        .cb-spot     { background: #EEF2FF; color: #4361EE; }
-        .cb-shopping { background: #FCF3FB; color: #8B3FAB; }
-        .cb-transit  { background: #EDFAF3; color: #277A50; }
-        .cb-etc      { background: #F4F4F6; color: #6B7280; }
+        .cb-meal     { background: #FFF8E6; color: #6B4E10; }
+        .cb-spot     { background: #EEEEFF; color: #2B3EAA; }
+        .cb-shopping { background: #F8EEFF; color: #6B1FAA; }
+        .cb-transit  { background: #EDFDF5; color: #0F6640; }
+        .cb-etc      { background: #F2F2F2; color: #555; }
 
         /* 드래그앤드롭 */
         .place-row[draggable="true"] { cursor: grab; }
         .place-row[draggable="true"]:active { cursor: grabbing; }
         .place-row select, .place-row input, .place-row button { -webkit-user-drag: none; user-drag: none; }
-        .place-row.dragging { opacity: .35; background: #EEF2FF; border-radius: 8px; }
-        .drag-handle { color: #C8C4BD; font-size: 14px; padding: 0 2px; flex-shrink: 0; cursor: grab; user-select: none; }
+        .place-row.dragging { opacity: .35; background: #F5F5F5; border-radius: 8px; }
+        .drag-handle { color: #CACACA; font-size: 14px; padding: 0 2px; flex-shrink: 0; cursor: grab; user-select: none; }
         .cat-select {
-            border: 1px solid #E5E2DC; border-radius: 8px;
-            background: #F8F7F5; color: #555;
+            border: 1px solid #E8E8E8; border-radius: 8px;
+            background: #F5F5F5; color: #444;
             font-size: 11px; padding: 2px 4px;
             font-family: inherit; cursor: pointer; outline: none; flex-shrink: 0;
         }
-        .cat-select:focus { border-color: #4361EE; background: #EEF2FF; }
+        .cat-select:focus { border-color: #111; background: #fff; }
         .section-drop-zone {
             min-height: 40px; border-radius: 8px;
             border: 2px dashed transparent;
@@ -79,98 +79,146 @@
             padding: 2px;
         }
         .section-drop-zone.drag-over {
-            border-color: #4361EE;
-            background: #EEF2FF;
+            border-color: #111;
+            background: #F5F5F5;
         }
         .drop-hint {
             text-align: center; font-size: 11px; color: #bbb;
             padding: 10px 0; display: none;
         }
         .section-drop-zone.drag-over .drop-hint { display: block; }
+        .drop-indicator {
+            height: 2px; background: #111; border-radius: 2px;
+            margin: 1px 4px; pointer-events: none;
+            box-shadow: 0 0 4px rgba(0,0,0,0.2);
+        }
 
         /* ── 타임라인 흐름도 ── */
         .day-flow {
-            background: linear-gradient(135deg, #1A2A6C 0%, #4361EE 100%);
-            border-radius: 12px; margin-bottom: 12px;
-            padding: 12px 14px 10px; position: relative; overflow: hidden;
+            background: linear-gradient(60deg, #000000a1 0%, #000000 100%);
+            border-radius: 14px; margin-bottom: 12px;
+            padding: 14px 16px 12px; position: relative; overflow: hidden;
         }
         .day-flow::before {
-            content: ''; position: absolute; top: -20px; right: -20px;
-            width: 100px; height: 100px; background: rgba(255,255,255,0.06);
+            content: ''; position: absolute; top: -30px; right: -30px;
+            width: 130px; height: 130px; background: rgba(255,255,255,0.05);
             border-radius: 50%;
         }
-        .flow-title { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 600; margin-bottom: 10px; letter-spacing: .5px; }
-        /* 3-column + 2 connector grid */
+        .day-flow::after {
+            content: ''; position: absolute; bottom: -20px; left: -20px;
+            width: 80px; height: 80px; background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+        .flow-title {
+            font-size: 10px; color: rgba(255,255,255,0.45);
+            font-weight: 600; margin-bottom: 8px; letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+        /* 캐릭터 행 — 슬롯과 동일한 그리드 정렬 */
+        .flow-char-row {
+            display: grid;
+            grid-template-columns: 1fr 18px 1fr 18px 1fr;
+            margin-bottom: 2px; min-height: 26px;
+        }
+        .flow-char-cell {
+            display: flex; justify-content: center; align-items: flex-end;
+            font-size: 17px; line-height: 1; transition: opacity .4s;
+        }
+        .flow-char-cell.active {
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.6));
+            animation: charBounce 1.8s ease-in-out infinite;
+        }
+        @keyframes charBounce {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-4px); }
+        }
+        .flow-char-cell:not(.active) { opacity: 0; pointer-events: none; }
+        /* 슬롯 그리드 */
         .flow-slots {
             display: grid;
             grid-template-columns: 1fr 18px 1fr 18px 1fr;
-            align-items: start;
-            margin-bottom: 8px;
+            align-items: start; margin-bottom: 10px;
         }
         .flow-connector {
             display: flex; align-items: center; justify-content: center;
-            padding-top: 18px; color: rgba(255,255,255,0.22); font-size: 16px;
+            padding-top: 22px; color: rgba(255,255,255,0.2); font-size: 13px;
         }
         .flow-slot {
-            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
             min-width: 0;
         }
         .flow-slot-dot {
-            width: 38px; height: 38px; border-radius: 50%;
+            width: 44px; height: 44px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px; border: 2px solid rgba(255,255,255,0.18);
-            background: rgba(255,255,255,0.08);
-            position: relative; transition: background .2s;
+            font-size: 20px; border: 2px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.07);
+            position: relative; transition: all .3s;
         }
         .flow-slot-dot.has-items {
-            background: rgba(255,255,255,0.22);
-            border-color: rgba(255,255,255,0.65);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.55);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.25);
         }
-        .flow-slot-dot.empty { opacity: 0.3; }
+        .flow-slot-dot.empty { opacity: 0.25; }
+        .flow-slot-dot.current {
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.9);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 3px 14px rgba(0,0,0,0.4);
+        }
         .flow-slot-badge {
-            position: absolute; top: -5px; right: -5px;
-            background: #FFC947; color: #1A2A6C;
-            border-radius: 50%; width: 17px; height: 17px;
-            font-size: 9px; font-weight: 800;
+            position: absolute; top: -6px; right: -6px;
+            background: #fff; color: #111;
+            border-radius: 50%; width: 19px; height: 19px;
+            font-size: 10px; font-weight: 900;
             display: flex; align-items: center; justify-content: center;
-            border: 1.5px solid rgba(26,42,108,0.3);
+            border: 2px solid rgba(0,0,0,0.08);
         }
-        .flow-slot-label { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 700; letter-spacing: .3px; }
-        .flow-slot-krw { font-size: 8px; color: #FFC947; font-weight: 600; }
-        .flow-slot-chips { display: flex; flex-direction: column; gap: 2px; width: 100%; margin-top: 3px; }
-        .flow-chip {
-            background: rgba(255,255,255,0.13); border-radius: 5px;
-            padding: 2px 4px; font-size: 9px;
-            color: rgba(255,255,255,0.82); white-space: nowrap;
-            overflow: hidden; text-overflow: ellipsis; text-align: center; width: 100%;
-            box-sizing: border-box;
+        .flow-slot-label {
+            font-size: 11px; color: rgba(255,255,255,0.75);
+            font-weight: 700; letter-spacing: .3px;
         }
-        .flow-chip-more { color: rgba(255,255,255,0.38) !important; background: transparent !important; }
-        /* 미정 행 */
-        .flow-unset-row {
-            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
-            padding-top: 7px; margin-top: 2px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+        .flow-slot-krw {
+            font-size: 9px; color: rgba(255,255,255,0.55); font-weight: 600;
         }
-        .flow-unset-label { font-size: 9px; color: rgba(255,255,255,0.38); white-space: nowrap; flex-shrink: 0; }
-        .flow-chip-unset {
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 8px; padding: 2px 7px;
-            font-size: 9px; color: rgba(255,255,255,0.58);
-            white-space: nowrap; max-width: 82px;
-            overflow: hidden; text-overflow: ellipsis;
+        /* 카테고리 칩 */
+        .flow-slot-cats {
+            display: flex; flex-direction: column; gap: 0;
+            width: 100%; margin-top: 6px;
         }
+        .flow-cat-group {
+            margin-bottom: 5px;
+        }
+        .flow-cat-group:last-child { margin-bottom: 0; }
+        .flow-cat-group-label {
+            font-size: 9px; font-weight: 800; letter-spacing: .4px;
+            text-transform: uppercase; margin-bottom: 2px;
+            padding-bottom: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+        .fcc-meal     .flow-cat-group-label { color: #FFD580; }
+        .fcc-spot     .flow-cat-group-label { color: #93C5FD; }
+        .fcc-shopping .flow-cat-group-label { color: #D8B4FE; }
+        .fcc-transit  .flow-cat-group-label { color: #6EE7B7; }
+        .fcc-etc      .flow-cat-group-label { color: rgba(255,255,255,0.38); }
+        .flow-cat-item {
+            font-size: 10px; padding: 1px 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .fcc-meal     .flow-cat-item { color: rgba(255,213,128,0.85); }
+        .fcc-spot     .flow-cat-item { color: rgba(147,197,253,0.85); }
+        .fcc-shopping .flow-cat-item { color: rgba(216,180,254,0.85); }
+        .fcc-transit  .flow-cat-item { color: rgba(110,231,183,0.85); }
+        .fcc-etc      .flow-cat-item { color: rgba(255,255,255,0.45); }
+        /* 요약 */
         .flow-summary {
-            font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 8px;
+            font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 6px;
             display: flex; justify-content: space-between; align-items: center;
-            padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .flow-summary-total { font-weight: 800; color: #FFC947; font-size: 12px; }
+        .flow-summary-total { font-weight: 800; color: #fff; font-size: 13px; }
 
         /* ── 리스트 행 ── */
-        .place-row { display: flex; align-items: flex-start; padding: 8px 6px; border-bottom: 1px solid #F0EDE8; gap: 8px; }
+        .place-row { display: flex; align-items: flex-start; padding: 8px 6px; border-bottom: 1px solid #EBEBEB; gap: 8px; }
         .place-row:last-child { border-bottom: none; }
         .item-info { flex: 1; min-width: 0; }
         .item-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -181,18 +229,18 @@
             border-bottom: 1px dashed #e8e8e8; outline: none; padding: 1px 2px;
             font-family: inherit;
         }
-        .item-comment:focus { border-bottom-color: #4361EE; background: #F5F7FF; border-radius: 3px 3px 0 0; }
+        .item-comment:focus { border-bottom-color: #111; background: #F8F8F8; border-radius: 3px 3px 0 0; }
         .item-comment::placeholder { color: #ccc; }
 
         /* ── 뱃지 ── */
         .type-badge { font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
-        .bg-morning  { background: #FEF9ED; color: #B87C10; }
-        .bg-lunch    { background: #E8F5EA; color: #2E7A45; }
-        .bg-dinner   { background: #FEF3E2; color: #C96620; }
-        .bg-spot     { background: #EEF2FF; color: #4361EE; }
-        .bg-transit  { background: #EDFAF3; color: #277A50; }
-        .bg-shopping { background: #FAF0FD; color: #8B3FAB; }
-        .bg-etc      { background: #F4F4F6; color: #6B7280; }
+        .bg-morning  { background: #FFF8E6; color: #6B4E10; }
+        .bg-lunch    { background: #EDFAF2; color: #1A5C35; }
+        .bg-dinner   { background: #FFF5F0; color: #7A2C10; }
+        .bg-spot     { background: #EEEEFF; color: #2B3EAA; }
+        .bg-transit  { background: #EDFDF5; color: #0F6640; }
+        .bg-shopping { background: #F8EEFF; color: #6B1FAA; }
+        .bg-etc      { background: #F2F2F2; color: #555; }
 
         /* ── 핀 맥동 ── */
         @keyframes pulse {
@@ -201,13 +249,13 @@
             100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); }
         }
         /* ── 호텔 마커 ── */
-        .hotel-marker { background: #4361EE; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .hotel-marker { background: #111; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
 
         /* ════════════════════════════════
            MOBILE  (< 768px)
         ════════════════════════════════ */
         @media (max-width: 767px) {
-            .page-wrapper { padding: 12px; padding-bottom: 90px; }
+            .page-wrapper { padding: 12px; padding-bottom: 210px; }
             .map-card { height: 330px; margin-bottom: 12px; }
             .left-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
             .rate-row { display: flex; align-items: center; gap: 6px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:8px 12px; }
@@ -231,7 +279,7 @@
            PC  (≥ 768px)
         ════════════════════════════════ */
         @media (min-width: 768px) {
-            body { background-color: #E6E2DB; }
+            body { background-color: #E2E2E0; }
             .page-wrapper {
                 max-width: 1200px;
                 margin: 0 auto;
@@ -276,14 +324,14 @@
             }
             .top-control-card {
                 margin: 0; box-shadow: none; border-radius: 8px;
-                background: #F8F7F5; padding: 10px;
+                background: #F5F5F5; padding: 10px;
             }
             .rate-row {
                 display: flex; align-items: center; gap: 8px;
-                background: #F8F7F5; border-radius: 8px; padding: 8px 10px;
+                background: #F5F5F5; border-radius: 8px; padding: 8px 10px;
             }
             .pac-input-wrap { margin: 0; }
-            #pac-input { background: #F8F7F5; border: none !important; box-shadow: none !important; border-radius: 8px; }
+            #pac-input { background: #F5F5F5; border: none !important; box-shadow: none !important; border-radius: 8px; }
 
             /* 오른쪽 패널 */
             .right-panel {
@@ -296,7 +344,7 @@
             }
             .right-panel-header {
                 padding: 14px 20px 0;
-                border-bottom: 1px solid #F0EDE8;
+                border-bottom: 1px solid #EBEBEB;
             }
             .right-panel-body {
                 padding: 14px 20px;
@@ -307,11 +355,11 @@
 
             /* footer → sticky 하단 */
             .footer-total {
-                border-top: 1px solid #F0EDE8;
+                border-top: 1px solid #EBEBEB;
                 padding: 12px 20px;
                 margin: 0;
                 display: flex; justify-content: space-between; align-items: center;
-                background: #FDFCFB;
+                background: #FAFAFA;
             }
         }
 
@@ -338,17 +386,17 @@
         }
         .cl-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 20px 12px; border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
+            padding: 16px 20px 12px; border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
         }
         .cl-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
         .cl-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
         .cl-progress { padding: 8px 20px 0; font-size: 11px; color: #999; flex-shrink: 0; }
-        .cl-progress-bar-wrap { height: 4px; background: #ECEAE6; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
+        .cl-progress-bar-wrap { height: 3px; background: #EAEAEA; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
         .cl-progress-bar { height: 100%; background: var(--primary-color); border-radius: 2px; transition: width .3s; }
         .cl-body { overflow-y: auto; flex: 1; padding: 8px 20px 16px; }
         .cl-item {
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 0; border-bottom: 1px solid #F0EDE8;
+            padding: 10px 0; border-bottom: 1px solid #EBEBEB;
         }
         .cl-item:last-child { border-bottom: none; }
         .cl-checkbox {
@@ -366,10 +414,10 @@
         .cl-label.done { text-decoration: line-through; color: #bbb; }
         .cl-del { background: none; border: none; color: #ddd; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
         .cl-del:hover { color: #e74c3c; }
-        .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #F0EDE8; flex-shrink: 0; }
-        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #E5E2DC; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
-        .cl-add-row input:focus { border-color: var(--primary-color); }
-        .cl-add-row button { border-radius: 8px; background: var(--primary-color); color: #fff; border: none; padding: 7px 16px; font-size: 13px; cursor: pointer; }
+        .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #EBEBEB; flex-shrink: 0; }
+        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #E0E0E0; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
+        .cl-add-row input:focus { border-color: #111; }
+        .cl-add-row button { border-radius: 8px; background: #111; color: #fff; border: none; padding: 7px 16px; font-size: 13px; cursor: pointer; }
         .cl-section-label { font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: .5px; margin: 12px 0 4px; }
 
         /* ── 회화 모달 ── */
@@ -380,7 +428,7 @@
         }
         .ph-overlay.open { display: flex; }
         .ph-sheet {
-            background: #F5F3EF; width: 100%; max-width: 580px;
+            background: #F8F8F8; width: calc(100% - 24px); max-width: 580px;
             border-radius: 22px 22px 0 0;
             max-height: 85vh; display: flex; flex-direction: column;
             animation: slideUp .25s ease;
@@ -400,17 +448,21 @@
         .ph-tabs {
             display: flex; overflow-x: auto; gap: 6px;
             padding: 10px 16px; background: #fff;
-            border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
+            border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
             scrollbar-width: none; -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x proximity;
+            cursor: grab; user-select: none;
         }
+        .ph-tabs:active { cursor: grabbing; }
         .ph-tabs::-webkit-scrollbar { display: none; }
         .ph-tab {
-            white-space: nowrap; flex-shrink: 0;
-            border: 1px solid #E5E2DC; background: #FDFCFB; color: #666;
+            white-space: nowrap; flex-shrink: 0; scroll-snap-align: start;
+            border: 1px solid #E5E5E5; background: #fff; color: #555;
             border-radius: 16px; padding: 5px 12px; font-size: 12px; cursor: pointer;
             font-family: inherit; font-weight: 500;
         }
-        .ph-tab.active { background: #4361EE; border-color: #4361EE; color: #fff; font-weight: 700; }
+        .ph-tab.active { background: #111; border-color: #111; color: #fff; font-weight: 700; }
         /* 카드 목록 */
         .ph-body { overflow-y: auto; flex: 1; padding: 12px 14px 20px; }
         .ph-card {
@@ -420,29 +472,96 @@
             cursor: pointer; transition: box-shadow .15s;
             position: relative;
         }
-        .ph-card:active { box-shadow: 0 0 0 2px #4361EE; }
+        .ph-card:active { box-shadow: 0 0 0 2px #111; }
         .ph-korean { font-size: 12px; color: #888; margin-bottom: 4px; }
-        .ph-japanese { font-size: 17px; font-weight: 700; color: #1A1A2E; letter-spacing: .5px; margin-bottom: 5px; }
-        .ph-pronun { font-size: 12px; color: #4361EE; font-weight: 500; }
+        .ph-japanese { font-size: 17px; font-weight: 700; color: #111; letter-spacing: .5px; margin-bottom: 5px; }
+        .ph-pronun { font-size: 12px; color: #555; font-weight: 500; }
         .ph-copy-hint { position: absolute; top: 10px; right: 12px; font-size: 10px; color: #ccc; }
         .ph-copied { color: #28a745 !important; }
         .ph-speak-btn {
-            border: none; background: #EEF2FF; color: #4361EE;
+            border: none; background: #F0F0F0; color: #333;
             border-radius: 50%; width: 28px; height: 28px;
             font-size: 14px; cursor: pointer; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             transition: background .15s;
         }
-        .ph-speak-btn:active, .ph-speak-btn.speaking { background: #4361EE; color: #fff; }
+        .ph-speak-btn:active, .ph-speak-btn.speaking { background: #111; color: #fff; }
+
+        /* ── 지도 마커 InfoWindow ── */
+        .marker-info { font-family: 'Noto Sans KR', sans-serif; min-width: 160px; }
+        .marker-info-cat { font-size: 10px; font-weight: 700; margin-bottom: 4px; }
+        .marker-info-name { font-size: 14px; font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
+        .marker-info-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #666; margin-top: 3px; }
+        .marker-info-jpy { font-weight: 700; color: #111; }
+        .marker-info-comment { font-size: 11px; color: #888; margin-top: 4px; font-style: italic; }
+        .marker-info-time { font-size: 10px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-block; margin-bottom: 4px; }
+
+        /* ── 날짜 이동 팝업 ── */
+        .day-picker-popup {
+            position: fixed; z-index: 1800;
+            background: #fff; border-radius: 12px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+            padding: 10px 8px; min-width: 130px;
+            display: none;
+        }
+        .day-picker-popup.open { display: block; }
+        .day-picker-title {
+            font-size: 10px; color: #aaa; font-weight: 700;
+            letter-spacing: .4px; padding: 2px 6px 6px; border-bottom: 1px solid #F0EDE8;
+            margin-bottom: 4px;
+        }
+        .day-picker-btn {
+            display: block; width: 100%; text-align: left;
+            background: none; border: none; padding: 6px 8px;
+            font-size: 13px; font-family: inherit; border-radius: 7px;
+            cursor: pointer; color: #333; font-weight: 500;
+            transition: background .12s;
+        }
+        .day-picker-btn:hover { background: #F5F5F5; color: #111; }
+        .day-picker-btn.is-current { color: #bbb; cursor: default; pointer-events: none; }
+
+        /* ── 플로팅 액션 버튼 ── */
+        .fab-wrap {
+            position: fixed;
+            bottom: 24px;
+            right: 18px;
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .fab-btn {
+            display: flex; align-items: center; gap: 8px;
+            padding: 11px 20px 11px 16px;
+            border-radius: 50px; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 700; font-family: inherit;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.14);
+            transition: transform .15s, box-shadow .15s;
+            white-space: nowrap;
+        }
+        .fab-btn:hover  { transform: translateY(-2px); box-shadow: 0 7px 22px rgba(0,0,0,0.18); }
+        .fab-btn:active { transform: translateY(0);    box-shadow: 0 2px 8px  rgba(0,0,0,0.12); }
+        .fab-icon {
+            width: 28px; height: 28px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
+        }
+        .fab-checklist { background: #111; color: #fff; }
+        .fab-checklist .fab-icon { background: rgba(255,255,255,0.15); }
+        .fab-phrase    { background: #111; color: #fff; }
+        .fab-phrase    .fab-icon { background: rgba(255,255,255,0.15); }
+        /* 모바일: 고정 footer-total 위로 */
+        @media (max-width: 767px) {
+            .fab-wrap { bottom: 76px; right: 14px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="page-wrapper">
-    <div style="display:flex; align-items:center; justify-content:center; gap:10px; " class="page-title">
-        <h6 class="fw-bold m-0"> 2026년 | 🗼도쿄 여행 계획 🐉🐏 </h6>
-        <button onclick="openChecklist()" style="border:none; background:#EEF2FF; color:#4361EE; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🎒 준비물</button>
-        <button onclick="openPhrasebook()" style="border:none; background:#FEF5EE; color:#C96620; border-radius:20px; padding:4px 12px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap;">🗣️ 회화</button>
+    <div class="page-title" style="text-align:center;">
+        <h6 class="fw-bold m-0">2026년 | 🗼 도쿄 여행 계획 🐉🐏</h6>
     </div>
 
     <div class="main-layout">
@@ -458,7 +577,7 @@
                         <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945" style="max-width:76px; font-weight:bold;">
                         <span style="font-size:11px; color:#aaa;">KRW</span>
                         <button id="rate-refresh-btn" onclick="fetchLiveRate()" title="실시간 환율 가져오기"
-                            style="border:none;background:#EEF2FF;color:#4361EE;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;margin-left:auto;">🔄 실시간</button>
+                            style="border:none;background:#F0F0F0;color:#333;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;margin-left:auto;">🔄 실시간</button>
                     </div>
                     <div id="rate-status" style="font-size:10px; color:#aaa; padding-left:2px;"></div>
                     <!-- 엔화 → 원화 변환기 -->
@@ -466,7 +585,7 @@
                         <input type="number" id="jpy-input" placeholder="¥ 엔화 입력" oninput="calcKrw()"
                             style="flex:1; border:none; border-bottom:1px solid #dde; background:transparent; font-size:13px; font-weight:700; outline:none; padding:3px 2px; font-family:inherit; min-width:0;">
                         <span style="font-size:11px; color:#aaa; white-space:nowrap;">→</span>
-                        <span id="krw-result" style="font-size:13px; font-weight:800; color:#4361EE; white-space:nowrap; min-width:60px; text-align:right;">-</span>
+                        <span id="krw-result" style="font-size:13px; font-weight:800; color:#111; white-space:nowrap; min-width:60px; text-align:right;">-</span>
                         <span style="font-size:11px; color:#aaa;">원</span>
                     </div>
                 </div>
@@ -503,8 +622,8 @@
                     <div style="font-size:10px; color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
                     <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
                     <!-- 핀 미리보기 확인 카드 -->
-                    <div id="place-preview" style="display:none; margin-top:8px; background:#EEF2FF; border-radius:10px; padding:10px 12px; border:1px solid #C5D2FA;">
-                        <div style="font-size:11px; color:#4361EE; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
+                    <div id="place-preview" style="display:none; margin-top:8px; background:#F5F5F5; border-radius:10px; padding:10px 12px; border:1px solid #E0E0E0;">
+                        <div style="font-size:11px; color:#111; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
                         <div style="font-size:12px; font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
                         <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:13px; font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
                         <div style="font-size:10px; color:#888; margin-bottom:8px;" id="preview-addr"></div>
@@ -522,7 +641,7 @@
             <div class="right-panel-header">
                 <!-- 타임라인 흐름도 -->
                 <div class="day-flow" id="day-flow">
-                    <div class="flow-title">📅 오늘의 여행 흐름</div>
+                    <div class="flow-title" style="color: #FFFF;">📅 오늘의 여행 흐름</div>
                     <div id="day-flow-inner"></div>
                 </div>
                 <ul class="nav nav-pills" id="pills-tab">
@@ -542,6 +661,22 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- 플로팅 액션 버튼 -->
+<div class="fab-wrap">
+    <button class="fab-btn fab-checklist" onclick="openChecklist()">
+        <span class="fab-icon">🎒</span>준비물
+    </button>
+    <button class="fab-btn fab-phrase" onclick="openPhrasebook()">
+        <span class="fab-icon">🗣️</span>회화
+    </button>
+</div>
+
+<!-- 날짜 이동 팝업 -->
+<div class="day-picker-popup" id="day-picker-popup">
+    <div class="day-picker-title">📅 날짜 이동</div>
+    <div id="day-picker-btns"></div>
 </div>
 
 <!-- ── 체크리스트 모달 ── -->
@@ -635,6 +770,7 @@
             window.googleMap = new Map(document.getElementById("map"), {
                 center: HOTEL_COORDS, zoom: 14, mapId: "TOKYO_FINAL_UI", disableDefaultUI: true
             });
+            window.sharedInfoWindow = new google.maps.InfoWindow();
 
             const autocomplete = new Autocomplete(document.getElementById("pac-input"));
             let previewPlace = null;
@@ -680,6 +816,7 @@
                     cat: selectedCat,
                     jpy: 0,
                     comment: "",
+                    order: Date.now(),
                     lat: previewPlace.geometry.location.lat(),
                     lng: previewPlace.geometry.location.lng()
                 });
@@ -773,7 +910,7 @@
         const timeSlot = document.getElementById('manual-time').value;
         const cat = document.getElementById('manual-cat').value;
         if (!name) return;
-        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, timeSlot, cat, jpy: 0, comment });
+        set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, timeSlot, cat, jpy: 0, comment, order: Date.now() });
         nameEl.value = ''; commentEl.value = '';
         _name = ''; _comment = '';
     };
@@ -813,44 +950,148 @@
         update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { cat: val });
     };
 
+    function clearDropIndicators(zone) {
+        zone.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    }
+
     function setupDropZone(zone) {
         zone.addEventListener('dragover', e => {
             e.preventDefault();
-            zone.classList.add('drag-over');
+            clearDropIndicators(zone);
+
+            const targetRow = e.target.closest('.place-row');
+            if (targetRow) {
+                const rect = targetRow.getBoundingClientRect();
+                const indicator = document.createElement('div');
+                indicator.className = 'drop-indicator';
+                if (e.clientY < rect.top + rect.height / 2) {
+                    targetRow.before(indicator);
+                    zone.dataset.dropBefore = targetRow.dataset.id;
+                } else {
+                    targetRow.after(indicator);
+                    zone.dataset.dropBefore = targetRow.nextElementSibling?.dataset?.id || '';
+                }
+                zone.classList.remove('drag-over');
+            } else {
+                zone.classList.add('drag-over');
+                delete zone.dataset.dropBefore;
+            }
         });
+
         zone.addEventListener('dragleave', e => {
-            if (!zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+            if (!zone.contains(e.relatedTarget)) {
+                zone.classList.remove('drag-over');
+                clearDropIndicators(zone);
+            }
         });
+
         zone.addEventListener('drop', e => {
             e.preventDefault();
             zone.classList.remove('drag-over');
-            const id = e.dataTransfer.getData('text/plain');
-            const newTimeSlot = zone.dataset.timeslot;
-            if (!id || !newTimeSlot) return;
+            clearDropIndicators(zone);
 
-            // 기존 raw 데이터에서 cat 보장 (마이그레이션 적용)
-            const rawItem = window.tripData?.days?.[window.currentDay]?.[id];
+            const dragId = e.dataTransfer.getData('text/plain');
+            const newTimeSlot = zone.dataset.timeslot;
+            if (!dragId || !newTimeSlot) return;
+
+            const rawItem = window.tripData?.days?.[window.currentDay]?.[dragId];
             const migratedItem = rawItem ? migrateItem(rawItem) : null;
             const cat = migratedItem?.cat || '기타';
 
-            update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { timeSlot: newTimeSlot, cat });
+            const dropBeforeId = zone.dataset.dropBefore || null;
+            reorderItems(dragId, newTimeSlot, cat, dropBeforeId);
         });
+    }
+
+    function reorderItems(dragId, newTimeSlot, cat, dropBeforeId) {
+        const dayData = window.tripData?.days?.[window.currentDay] || {};
+
+        // 해당 시간대의 기존 아이템 순서 가져오기 (드래그 대상 제외)
+        const slotItems = Object.entries(dayData)
+            .filter(([id]) => id !== dragId)
+            .filter(([, item]) => (item.timeSlot || '미정') === newTimeSlot)
+            .sort(([, a], [, b]) => (a.order ?? 0) - (b.order ?? 0));
+
+        // dropBeforeId 위치에 dragId 삽입
+        const insertIdx = dropBeforeId
+            ? slotItems.findIndex(([id]) => id === dropBeforeId)
+            : slotItems.length;
+        const finalIdx = insertIdx < 0 ? slotItems.length : insertIdx;
+        slotItems.splice(finalIdx, 0, [dragId, { ...dayData[dragId], timeSlot: newTimeSlot, cat }]);
+
+        // order 재할당 (10 단위)
+        const updates = {};
+        slotItems.forEach(([id], i) => {
+            updates[`${id}/order`] = i * 10;
+            if (id === dragId) {
+                updates[`${id}/timeSlot`] = newTimeSlot;
+                updates[`${id}/cat`] = cat;
+            }
+        });
+        update(ref(db, `tokyo_trip/days/${window.currentDay}`), updates);
     }
 
     window.deleteItem = (id) => {
         if (confirm("삭제할까요?")) remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`));
     };
 
+    const DAY_LABELS = {
+        day1: '4/8 수', day2: '4/9 목', day3: '4/10 금', day4: '4/11 토', day5: '4/12 일'
+    };
+    let _dayPickerItemId = null;
+
+    window.showDayPicker = (id, btnEl) => {
+        _dayPickerItemId = id;
+        const popup  = document.getElementById('day-picker-popup');
+        const btnsEl = document.getElementById('day-picker-btns');
+        btnsEl.innerHTML = Object.entries(DAY_LABELS).map(([key, label]) => {
+            const isCurrent = key === window.currentDay;
+            return `<button class="day-picker-btn${isCurrent ? ' is-current' : ''}"
+                onclick="moveToDay('${key}')">${label}${isCurrent ? ' ✓' : ''}</button>`;
+        }).join('');
+
+        const rect = btnEl.getBoundingClientRect();
+        popup.style.top  = (rect.bottom + 6) + 'px';
+        popup.style.left = Math.max(8, rect.right - 140) + 'px';
+        popup.classList.add('open');
+    };
+
+    window.moveToDay = (targetDay) => {
+        const id = _dayPickerItemId;
+        document.getElementById('day-picker-popup').classList.remove('open');
+        _dayPickerItemId = null;
+        if (!id || targetDay === window.currentDay) return;
+
+        const item = window.tripData?.days?.[window.currentDay]?.[id];
+        if (!item) return;
+
+        set(push(ref(db, `tokyo_trip/days/${targetDay}`)), { ...item, order: Date.now() })
+            .then(() => remove(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`)));
+    };
+
+    // 팝업 외부 클릭 시 닫기
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#day-picker-popup') && !e.target.closest('[onclick*="showDayPicker"]')) {
+            document.getElementById('day-picker-popup').classList.remove('open');
+            _dayPickerItemId = null;
+        }
+    });
+
     function updateDayFlow(daySchedule, rate) {
         const inner = document.getElementById('day-flow-inner');
         if (!inner) return;
 
-        // 시간대별 그룹핑 (daySchedule은 이미 migrateItem 적용됨)
+        // 시간대별 그룹핑
         const groups = { '아침': [], '점심': [], '저녁': [], '미정': [] };
         Object.values(daySchedule).forEach(item => {
             const t = item.timeSlot || '미정';
             (groups[t] || groups['미정']).push(item);
         });
+
+        // 일본 현지 시각(JST) 기준 현재 시간대
+        const jstHour = new Date(Date.now() + 9 * 3600000).getUTCHours();
+        const currentSlot = jstHour >= 6 && jstHour < 12 ? '아침'
+                          : jstHour >= 12 && jstHour < 18 ? '점심' : '저녁';
 
         const TIME_NODES = [
             { key: '아침', icon: '🌅' },
@@ -858,65 +1099,81 @@
             { key: '저녁', icon: '🌙' },
         ];
 
-        const allItems = Object.values(groups).flat();
-        const totalItems = allItems.length;
-        const totalKrw = Math.floor(allItems.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+        // 카테고리 → 칩 색상 매핑
+        const CAT_CHIP = {
+            '식사': { cls: 'fcc-meal',     icon: '🍽️', label: '식사' },
+            '장소': { cls: 'fcc-spot',     icon: '📍', label: '장소' },
+            '쇼핑': { cls: 'fcc-shopping', icon: '🛍️', label: '쇼핑' },
+            '교통': { cls: 'fcc-transit',  icon: '🚃', label: '교통' },
+            '기타': { cls: 'fcc-etc',      icon: '📌', label: '기타' },
+        };
+        const CAT_ORDER = ['식사', '장소', '쇼핑', '교통', '기타'];
 
-        // 슬롯 HTML
+        const mainItems = [...groups['아침'], ...groups['점심'], ...groups['저녁']];
+        const totalItems = mainItems.length + groups['미정'].length;
+        const totalKrw   = Math.floor(mainItems.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+
+        // 캐릭터 행 (슬롯과 동일 그리드 컬럼)
+        let charRowHtml = '<div class="flow-char-row">';
+        TIME_NODES.forEach((node, idx) => {
+            const isCurrent = node.key === currentSlot;
+            charRowHtml += `<div class="flow-char-cell${isCurrent ? ' active' : ''}">🐉🐏</div>`;
+            if (idx < 2) charRowHtml += '<div></div>';
+        });
+        charRowHtml += '</div>';
+
+        // 슬롯
         let slotsHtml = '<div class="flow-slots">';
         TIME_NODES.forEach((node, idx) => {
-            const items = groups[node.key];
-            const cnt = items.length;
-            const krw = Math.floor(items.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+            const items    = groups[node.key];
+            const cnt      = items.length;
+            const krw      = Math.floor(items.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
             const hasItems = cnt > 0;
+            const isCurrent = node.key === currentSlot;
 
-            const chipsHtml = items.slice(0, 3).map(item => {
-                const meta = CAT_META[item.cat] || CAT_META['기타'];
-                const name = (item.name || '').slice(0, 5);
-                return `<div class="flow-chip">${meta.icon}${name}</div>`;
+            // 카테고리별 그룹핑 → 세로 목록
+            const catGroups = {};
+            items.forEach(item => {
+                const c = item.cat || '기타';
+                if (!catGroups[c]) catGroups[c] = [];
+                catGroups[c].push(item);
+            });
+            const catsHtml = CAT_ORDER.filter(c => catGroups[c]).map(c => {
+                const m = CAT_CHIP[c];
+                const itemsHtml = catGroups[c].map(item =>
+                    `<div class="flow-cat-item">${m.icon} ${(item.name||'').slice(0,7)}</div>`
+                ).join('');
+                return `<div class="flow-cat-group ${m.cls}">
+                    <div class="flow-cat-group-label">${m.label}</div>
+                    ${itemsHtml}
+                </div>`;
             }).join('');
-            const moreHtml = items.length > 3
-                ? `<div class="flow-chip flow-chip-more">+${items.length - 3}개</div>` : '';
 
-            const krwLabel = krw > 0
-                ? `<div class="flow-slot-krw">${krw >= 10000 ? (krw / 10000).toFixed(1) + '만' : krw.toLocaleString()}원</div>` : '';
+            const dotClass = `flow-slot-dot${hasItems ? ' has-items' : ' empty'}${isCurrent ? ' current' : ''}`;
+            const krwHtml  = krw > 0
+                ? `<div class="flow-slot-krw">${krw >= 10000 ? (krw/10000).toFixed(1)+'만' : krw.toLocaleString()}원</div>` : '';
 
             slotsHtml += `
                 <div class="flow-slot">
-                    <div class="flow-slot-dot ${hasItems ? 'has-items' : 'empty'}">
+                    <div class="${dotClass}">
                         ${node.icon}
                         ${hasItems ? `<div class="flow-slot-badge">${cnt}</div>` : ''}
                     </div>
                     <div class="flow-slot-label">${node.key}</div>
-                    ${krwLabel}
-                    <div class="flow-slot-chips">${chipsHtml}${moreHtml}</div>
-                </div>
-            `;
+                    ${krwHtml}
+                    <div class="flow-slot-cats">${catsHtml}</div>
+                </div>`;
             if (idx < 2) slotsHtml += '<div class="flow-connector">›</div>';
         });
         slotsHtml += '</div>';
 
-        // 미정 행
-        let unsetHtml = '';
-        if (groups['미정'].length > 0) {
-            const chips = groups['미정'].map(item => {
-                const meta = CAT_META[item.cat] || CAT_META['기타'];
-                const name = (item.name || '').slice(0, 7);
-                return `<div class="flow-chip-unset">${meta.icon} ${name}</div>`;
-            }).join('');
-            unsetHtml = `<div class="flow-unset-row">
-                <span class="flow-unset-label">❓ 미정 ${groups['미정'].length}개</span>
-                ${chips}
-            </div>`;
-        }
-
         // 요약
         const summaryHtml = `<div class="flow-summary">
-            <span>${totalItems > 0 ? `총 ${totalItems}개 일정` : '아직 일정이 없어요 ✈️'}</span>
+            <span style="color: #FFFF;">${totalItems > 0 ? `총 ${totalItems}개 일정` : '아직 일정이 없어요 ✈️'}</span>
             <span class="flow-summary-total">${totalKrw > 0 ? `예상 ${totalKrw.toLocaleString()}원` : ''}</span>
         </div>`;
 
-        inner.innerHTML = slotsHtml + unsetHtml + summaryHtml;
+        inner.innerHTML = charRowHtml + slotsHtml + summaryHtml;
     }
 
     // 시간대 메타
@@ -931,7 +1188,7 @@
     // 분류 메타
     const CAT_META = {
         '식사':  { icon:'🍽️', badge:'cb-meal',     mapEmoji:'🍽️', mapColor:'#B87C10' },
-        '장소':  { icon:'📍', badge:'cb-spot',     mapEmoji:'📍', mapColor:'#4361EE' },
+        '장소':  { icon:'📍', badge:'cb-spot',     mapEmoji:'📍', mapColor:'#2B3EAA' },
         '쇼핑':  { icon:'🛍️', badge:'cb-shopping', mapEmoji:'🛍️', mapColor:'#8B3FAB' },
         '교통':  { icon:'🚃', badge:'cb-transit',  mapEmoji:'🚃', mapColor:'#277A50' },
         '기타':  { icon:'📌', badge:'cb-etc',      mapEmoji:'📌', mapColor:'#6B7280' },
@@ -963,7 +1220,7 @@
         // 자동 일정
         AUTO_SCHEDULE[window.currentDay].forEach(text => {
             const row = document.createElement('div');
-            row.innerHTML = `<div class="p-2 bg-light rounded-3 mb-2" style="font-size:12px; font-weight:600; border-left:4px solid #4361EE; color:#444;">${text}</div>`;
+            row.innerHTML = `<div class="p-2 bg-light rounded-3 mb-2" style="font-size:12px; font-weight:600; border-left:4px solid #111; color:#444;">${text}</div>`;
             container.appendChild(row);
         });
 
@@ -985,6 +1242,8 @@
             if (!groups[ts]) groups[ts] = [];
             groups[ts].push({ id, item });
         });
+        // order 필드 기준 정렬
+        Object.values(groups).forEach(arr => arr.sort((a, b) => (a.item.order ?? 0) - (b.item.order ?? 0)));
 
         const orderedTimes = [...TIME_ORDER.filter(t => groups[t]),
                              ...TIME_ORDER.filter(t => !groups[t])];
@@ -1040,7 +1299,7 @@
                             </select>
                             <span class="item-name" style="flex:1; min-width:0;">${item.name}</span>
                         </div>
-                        ${krw > 0 ? `<div style="font-size:10px; color:#4361EE; margin-bottom:1px;">${krw.toLocaleString()}원 · ¥${item.jpy}</div>` : ''}
+                        ${krw > 0 ? `<div style="font-size:10px; color:#777; margin-bottom:1px;">${krw.toLocaleString()}원 · ¥${item.jpy}</div>` : ''}
                         <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
                             onblur="updateComment('${id}', this.value)"
                             onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
@@ -1053,12 +1312,14 @@
                             onblur="window._editingPrice=false; window._focusedPriceId=null; renderList();">
                         <span class="input-group-text p-1" style="font-size:9px;">¥</span>
                     </div></div>
+                    <button class="btn btn-link p-0" onclick="showDayPicker('${id}', this)" style="text-decoration:none; font-size:13px; color:#bbb;" title="다른 날짜로 이동">↗</button>
                     <button class="btn btn-link text-danger p-0 ms-1" onclick="deleteItem('${id}')" style="text-decoration:none; font-size:13px;">✕</button>
                 `;
 
                 // 드래그 이벤트 — 핸들에서만 드래그 시작
                 const handleEl = row.querySelector('.drag-handle');
                 handleEl.addEventListener('mousedown', () => { row.draggable = true; });
+                handleEl.addEventListener('mouseup',   () => { row.draggable = false; });
                 handleEl.addEventListener('touchstart', () => { row.draggable = true; }, { passive: true });
                 row.addEventListener('dragstart', e => {
                     e.dataTransfer.setData('text/plain', id);
@@ -1074,9 +1335,27 @@
                 // 지도 마커 (분류 기준)
                 if (item.lat) {
                     const pin = document.createElement('div');
-                    pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
+                    pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;`;
                     pin.textContent = catM.mapEmoji;
-                    window.googleMarkers.push(new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin }));
+                    const marker = new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin });
+
+                    // 클릭 시 InfoWindow
+                    const TIME_STYLE = { '아침':'background:#FEFBF2;color:#B87C10', '점심':'background:#F0F7F2;color:#2E7A45', '저녁':'background:#FEF5EE;color:#C96620', '미정':'background:#F4F4F6;color:#6B7280' };
+                    marker.addListener('click', () => {
+                        const rate = (window.tripData?.rate || 945) / 100;
+                        const krw  = item.jpy ? Math.floor(item.jpy * rate).toLocaleString() + '원' : null;
+                        const timeLabel = item.timeSlot || '미정';
+                        const ts = TIME_STYLE[timeLabel] || TIME_STYLE['미정'];
+                        window.sharedInfoWindow.setContent(`
+                            <div class="marker-info">
+                                <span class="marker-info-time" style="${ts}">${catM.mapEmoji} ${timeLabel}</span>
+                                <div class="marker-info-name">${item.name || ''}</div>
+                                ${krw ? `<div class="marker-info-row"><span class="marker-info-jpy">¥${item.jpy}</span><span>→ ${krw}</span></div>` : ''}
+                                ${item.comment ? `<div class="marker-info-comment">"${item.comment}"</div>` : ''}
+                            </div>`);
+                        window.sharedInfoWindow.open(window.googleMap, marker);
+                    });
+                    window.googleMarkers.push(marker);
                 }
             });
 
@@ -1124,7 +1403,7 @@
             update(dbRef, { rate: rate100 });
             const today = new Date().toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' });
             status.textContent = `📡 ${today} 기준 · 1엔 ≈ ${ratePerYen.toFixed(2)}원`;
-            status.style.color = '#2E7A45';
+            status.style.color = '#555';
         } catch (e) {
             status.textContent = '❌ 환율 조회 실패 (수동 입력)';
             status.style.color = '#e03131';
@@ -1164,8 +1443,8 @@
     window.syncConverterFocus = (id, val) => {
         window._focusedPriceId = id;
         setConverterDisplay(val);
-        document.getElementById('jpy-input').style.borderBottomColor = '#4361EE';
-        document.getElementById('krw-result').style.color = '#4361EE';
+        document.getElementById('jpy-input').style.borderBottomColor = '#111';
+        document.getElementById('krw-result').style.color = '#111';
     };
 
     // 리스트 항목 ¥ 입력 시 → 변환기 동기화
@@ -1455,6 +1734,27 @@
         window.speechSynthesis.getVoices();
         window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
     }
+
+    // ph-tabs 마우스 드래그 스크롤 (PC)
+    (function() {
+        const el = document.getElementById('ph-tabs');
+        let down = false, startX = 0, scrollLeft = 0, moved = false;
+        el.addEventListener('mousedown', e => {
+            down = true; moved = false;
+            startX = e.pageX - el.offsetLeft;
+            scrollLeft = el.scrollLeft;
+            el.style.cursor = 'grabbing';
+        });
+        document.addEventListener('mouseup', () => { down = false; el.style.cursor = ''; });
+        el.addEventListener('mousemove', e => {
+            if (!down) return;
+            const dx = e.pageX - el.offsetLeft - startX;
+            if (Math.abs(dx) > 4) moved = true;
+            el.scrollLeft = scrollLeft - dx;
+        });
+        // 드래그 중이었으면 클릭 이벤트 차단
+        el.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+    })();
 
     window.openPhrasebook = () => {
         document.getElementById('ph-overlay').classList.add('open');
