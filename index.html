@@ -51,11 +51,13 @@
 
         /* ── 뱃지 ── */
         .type-badge { font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
-        .bg-morning { background: #fff3bf; color: #f08c00; }
-        .bg-lunch   { background: #d3f9d8; color: #2b8a3e; }
-        .bg-dinner  { background: #ffd8a8; color: #e67700; }
-        .bg-spot    { background: #e7f1ff; color: #007bff; }
-        .bg-etc     { background: #f1f3f5; color: #495057; }
+        .bg-morning  { background: #fff3bf; color: #f08c00; }
+        .bg-lunch    { background: #d3f9d8; color: #2b8a3e; }
+        .bg-dinner   { background: #ffd8a8; color: #e67700; }
+        .bg-spot     { background: #e7f1ff; color: #007bff; }
+        .bg-transit  { background: #e8f5e9; color: #2e7d32; }
+        .bg-shopping { background: #fce4ec; color: #c2185b; }
+        .bg-etc      { background: #f1f3f5; color: #495057; }
 
         /* ── 호텔 마커 ── */
         .hotel-marker { background: #007bff; color: white; padding: 5px; border-radius: 50%; border: 2px solid white; font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
@@ -316,11 +318,14 @@
                 <div class="top-control-card">
                     <div style="font-size:10px; color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
                     <div class="input-group input-group-sm">
-                        <select id="manual-type" class="form-select px-1" style="max-width:70px; font-size:11px;">
+                        <select id="manual-type" class="form-select px-1" style="max-width:75px; font-size:11px;">
                             <option value="아침">아침</option>
                             <option value="점심" selected>점심</option>
                             <option value="저녁">저녁</option>
                             <option value="장소">장소</option>
+                            <option value="교통">교통</option>
+                            <option value="쇼핑">쇼핑</option>
+                            <option value="기타">기타</option>
                         </select>
                         <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:12px;">
                         <button class="btn btn-primary px-2" onclick="addManualItem()">+</button>
@@ -479,14 +484,23 @@
         } else { set(dbRef, window.tripData); }
     });
 
+    // 메모 값을 변수에 미리 캐싱 (blur 타이밍 이슈 방지)
+    let cachedComment = '';
+    document.getElementById('manual-comment').addEventListener('input', (e) => {
+        cachedComment = e.target.value;
+    });
+
     window.addManualItem = () => {
         const name = document.getElementById('manual-name').value.trim();
         const type = document.getElementById('manual-type').value;
-        const comment = document.getElementById('manual-comment').value.trim();
+        // DOM value와 캐시 둘 다 확인 (더 긴 쪽 사용)
+        const domComment = document.getElementById('manual-comment').value.trim();
+        const comment = domComment || cachedComment.trim();
         if (!name) return;
         set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, type, jpy: 0, comment });
         document.getElementById('manual-name').value = "";
         document.getElementById('manual-comment').value = "";
+        cachedComment = '';
     };
 
     // Enter 키로 항목 추가 (이름 입력란 → 메모 입력란으로 포커스 이동)
@@ -539,7 +553,8 @@
         Object.keys(daySchedule).forEach(id => {
             const item = daySchedule[id];
             const krw = Math.floor(item.jpy * rate);
-            const typeClass = item.type === '아침' ? 'bg-morning' : item.type === '점심' ? 'bg-lunch' : item.type === '저녁' ? 'bg-dinner' : item.type === '장소' ? 'bg-spot' : '';
+            const typeClassMap = { '아침':'bg-morning','점심':'bg-lunch','저녁':'bg-dinner','장소':'bg-spot','교통':'bg-transit','쇼핑':'bg-shopping','기타':'bg-etc' };
+            const typeClass = typeClassMap[item.type] || 'bg-etc';
             const row = document.createElement('div');
             row.className = "place-row";
             row.innerHTML = `
@@ -560,7 +575,16 @@
                 <button class="btn btn-link text-danger p-0 ms-1" onclick="deleteItem('${id}')" style="text-decoration:none;">✕</button>
             `;
             container.appendChild(row);
-            if (item.lat) window.googleMarkers.push(new google.maps.Marker({ position: { lat: item.lat, lng: item.lng }, map: window.googleMap }));
+            if (item.lat) {
+                const EMOJI_MAP = { '아침': '🌅', '점심': '🍜', '저녁': '🍷', '장소': '📍', '교통': '🚃', '쇼핑': '🛍️', '기타': '📌' };
+                const COLOR_MAP = { '아침': '#f08c00', '점심': '#2b8a3e', '저녁': '#e67700', '장소': '#007bff', '교통': '#2e7d32', '쇼핑': '#c2185b', '기타': '#777' };
+                const emoji = EMOJI_MAP[item.type] || '📌';
+                const color = COLOR_MAP[item.type] || '#555';
+                const pin = document.createElement('div');
+                pin.style.cssText = `background:${color};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
+                pin.textContent = emoji;
+                window.googleMarkers.push(new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin }));
+            }
         });
         updateGrandTotal();
     };
