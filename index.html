@@ -1388,24 +1388,25 @@
         document.getElementById('rate-status').textContent = '✏️ 수동 입력됨';
     });
 
-    // 실시간 환율 fetch (frankfurter.app: JPY→KRW 100엔 기준)
+    // 실시간 환율 fetch (open.er-api.com: JPY→KRW 100엔 기준)
     window.fetchLiveRate = async () => {
         const btn = document.getElementById('rate-refresh-btn');
         const status = document.getElementById('rate-status');
         btn.textContent = '⏳ 로딩중...';
         btn.disabled = true;
         try {
-            const res = await fetch('https://api.frankfurter.app/latest?from=JPY&to=KRW');
-            const data = await res.json();
-            const ratePerYen = data.rates.KRW;          // 1엔 = ?원
-            const rate100 = Math.round(ratePerYen * 100); // 100엔 기준
-            document.getElementById('global-rate').value = rate100;
-            update(dbRef, { rate: rate100 });
-            const today = new Date().toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' });
-            status.textContent = `📡 ${today} 기준 · 1엔 ≈ ${ratePerYen.toFixed(2)}원`;
+            const response = await fetch('https://open.er-api.com/v6/latest/JPY');
+            const data = await response.json();
+            const ratePerYen = data.rates.KRW;
+            const rate100Yen = Math.round(ratePerYen * 1000) / 10;
+            document.getElementById('global-rate').value = rate100Yen;
+            const updateDate = new Date(data.time_last_update_utc).toLocaleDateString('ko-KR', { month:'numeric', day:'numeric' });
+            status.textContent = `📡 실시간: ${updateDate} 기준 · 100엔 ≈ ${rate100Yen}원`;
             status.style.color = '#555';
-        } catch (e) {
-            status.textContent = '❌ 환율 조회 실패 (수동 입력)';
+            update(dbRef, { rate: rate100Yen });
+        } catch (error) {
+            console.error('환율 로드 실패:', error);
+            status.textContent = '⚠️ 수동 모드 (945원)';
             status.style.color = '#e03131';
         } finally {
             btn.textContent = '🔄 실시간';
