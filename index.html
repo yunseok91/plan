@@ -1249,7 +1249,7 @@
                              ...TIME_ORDER.filter(t => !groups[t])];
 
         orderedTimes.forEach(timeSlot => {
-            const entries = groups[timeSlot];
+            const entries = groups[timeSlot] || [];
             const meta = TIME_META[timeSlot] || TIME_META['미정'];
             const subtotalJpy = entries.reduce((s, { item }) => s + (item.jpy || 0), 0);
             const subtotalKrw = Math.floor(subtotalJpy * rate);
