@@ -8,31 +8,86 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary-color: #111111; --bg-light: #F0F0EE; }
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: var(--bg-light); margin: 0; padding: 0; overflow-x: hidden; }
+        :root {
+            --primary-color: #111111;
+            --bg-light: #F0F0EE;
+            --font-family: 'Noto Sans KR', sans-serif;
+            /* 모바일 기본 크기 */
+            --fs-2xs: 10px;
+            --fs-xs:  11px;
+            --fs-sm:  12px;
+            --fs-md:  13px;
+            --fs-base: 14px;
+            --fs-lg:  15px;
+            --fs-xl:  16px;
+            --fs-2xl: 18px;
+            --fs-3xl: 20px;
+        }
+        /* PC에서는 한 단계 더 크게 */
+        @media (min-width: 768px) {
+            :root {
+                --fs-2xs: 11px;
+                --fs-xs:  12px;
+                --fs-sm:  13px;
+                --fs-md:  14px;
+                --fs-base: 15px;
+                --fs-lg:  16px;
+                --fs-xl:  17px;
+                --fs-2xl: 19px;
+                --fs-3xl: 22px;
+            }
+        }
+        body { font-family: var(--font-family); background-color: var(--bg-light); margin: 0; padding: 0; overflow-x: hidden; }
+        /* Bootstrap form 요소 폰트 통일 */
+        input, select, button, textarea { font-family: var(--font-family); }
         
         /* ── 공통 카드 ── */
         .map-card { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; background: #eee; }
         #map { height: 100%; width: 100%; }
         .top-control-card { margin: 10px 0px; border: none; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 10px; }
-        .form-control, .form-select { border-radius: 8px; font-size: 16px !important; }
+        /* 모바일 iOS zoom 방지용 16px 유지, PC에서는 아래 미디어쿼리에서 override */
+        .form-control, .form-select { border-radius: 8px; font-size: 16px; }
+        /* Google Maps API 인라인 스타일 덮어쓰기 */
+        #pac-input { font-family: var(--font-family) !important; font-size: 16px !important; }
 
         /* ── 탭 ── */
+        .nav-pills-wrap {
+            position: relative;
+        }
+        .nav-pills-wrap::before,
+        .nav-pills-wrap::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 24px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .2s;
+        }
+        .nav-pills-wrap::before { left: 0; background: linear-gradient(to right, #F0F0EE, rgba(240,240,238,0)); }
+        .nav-pills-wrap::after  { right: 0; background: linear-gradient(to left,  #F0F0EE, rgba(240,240,238,0)); }
+        .nav-pills-wrap.fade-left::before  { opacity: 1; }
+        .nav-pills-wrap.fade-right::after  { opacity: 1; }
+        @media (min-width: 768px) {
+            .nav-pills-wrap::before { background: linear-gradient(to right, #fff, rgba(255,255,255,0)); }
+            .nav-pills-wrap::after  { background: linear-gradient(to left,  #fff, rgba(255,255,255,0)); }
+        }
         .nav-pills {
             display: flex;
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            scroll-snap-type: x proximity;
             gap: 6px;
-            padding-bottom: 4px;
-            padding-left: 2px;
-            padding-right: 2px;
+            padding: 4px 0px 6px;
             /* 스크롤바 숨김 */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
         .nav-pills::-webkit-scrollbar { display: none; }
-        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #E8E8E8; color: #444; padding: 6px 14px; font-size: 13px; flex-shrink: 0; font-weight: 500; }
+        .nav-item { scroll-snap-align: start; }
+        .nav-link { white-space: nowrap; border-radius: 18px; background: #fff; border: 1px solid #E8E8E8; color: #444; padding: 6px 14px; font-size: var(--fs-base); flex-shrink: 0; font-weight: 500; }
         .nav-link.active { background-color: #111 !important; color: #fff !important; border-color: #111 !important; }
 
         /* ── 섹션 그룹 ── */
@@ -41,8 +96,8 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 6px 10px; border-radius: 8px; margin-bottom: 4px;
         }
-        .section-header-left { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
-        .section-subtotal { font-size: 11px; font-weight: 700; opacity: .85; }
+        .section-header-left { display: flex; align-items: center; gap: 6px; font-size: var(--fs-md); font-weight: 700; }
+        .section-subtotal { font-size: var(--fs-sm); font-weight: 700; opacity: .85; }
 
         /* 섹션별 색상 */
         /* 시간대 섹션 헤더 */
@@ -52,7 +107,7 @@
         .sh-unset    { background: #F3F3F3; color: #666; }
 
         /* 분류 뱃지 */
-        .cat-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 700; flex-shrink: 0; }
+        .cat-badge { font-size: var(--fs-xs); padding: 2px 6px; border-radius: 10px; font-weight: 700; flex-shrink: 0; }
         .cb-meal     { background: #FFF8E6; color: #6B4E10; }
         .cb-spot     { background: #EEEEFF; color: #2B3EAA; }
         .cb-shopping { background: #F8EEFF; color: #6B1FAA; }
@@ -64,12 +119,12 @@
         .place-row[draggable="true"]:active { cursor: grabbing; }
         .place-row select, .place-row input, .place-row button { -webkit-user-drag: none; user-drag: none; }
         .place-row.dragging { opacity: .35; background: #F5F5F5; border-radius: 8px; }
-        .drag-handle { color: #CACACA; font-size: 14px; padding: 0 2px; flex-shrink: 0; cursor: grab; user-select: none; }
+        .drag-handle { color: #CACACA; font-size: var(--fs-lg); padding: 0 2px; flex-shrink: 0; cursor: grab; user-select: none; }
         .cat-select {
             border: 1px solid #E8E8E8; border-radius: 8px;
             background: #F5F5F5; color: #444;
-            font-size: 11px; padding: 2px 4px;
-            font-family: inherit; cursor: pointer; outline: none; flex-shrink: 0;
+            font-size: var(--fs-sm); padding: 2px 4px;
+            cursor: pointer; outline: none; flex-shrink: 0;
         }
         .cat-select:focus { border-color: #111; background: #fff; }
         .section-drop-zone {
@@ -83,7 +138,7 @@
             background: #F5F5F5;
         }
         .drop-hint {
-            text-align: center; font-size: 11px; color: #bbb;
+            text-align: center; font-size: var(--fs-sm); color: #bbb;
             padding: 10px 0; display: none;
         }
         .section-drop-zone.drag-over .drop-hint { display: block; }
@@ -110,7 +165,7 @@
             border-radius: 50%;
         }
         .flow-title {
-            font-size: 10px; color: rgba(255,255,255,0.45);
+            font-size: var(--fs-xs); color: rgba(255,255,255,0.45);
             font-weight: 600; margin-bottom: 8px; letter-spacing: .6px;
             text-transform: uppercase;
         }
@@ -122,7 +177,7 @@
         }
         .flow-char-cell {
             display: flex; justify-content: center; align-items: flex-end;
-            font-size: 17px; line-height: 1; transition: opacity .4s;
+            font-size: var(--fs-2xl); line-height: 1; transition: opacity .4s;
         }
         .flow-char-cell.active {
             filter: drop-shadow(0 0 8px rgba(255,255,255,0.6));
@@ -141,7 +196,7 @@
         }
         .flow-connector {
             display: flex; align-items: center; justify-content: center;
-            padding-top: 22px; color: rgba(255,255,255,0.2); font-size: 13px;
+            padding-top: 22px; color: rgba(255,255,255,0.2); font-size: var(--fs-base);
         }
         .flow-slot {
             display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -169,16 +224,16 @@
             position: absolute; top: -6px; right: -6px;
             background: #fff; color: #111;
             border-radius: 50%; width: 19px; height: 19px;
-            font-size: 10px; font-weight: 900;
+            font-size: var(--fs-xs); font-weight: 900;
             display: flex; align-items: center; justify-content: center;
             border: 2px solid rgba(0,0,0,0.08);
         }
         .flow-slot-label {
-            font-size: 11px; color: rgba(255,255,255,0.75);
+            font-size: var(--fs-sm); color: rgba(255,255,255,0.75);
             font-weight: 700; letter-spacing: .3px;
         }
         .flow-slot-krw {
-            font-size: 9px; color: rgba(255,255,255,0.55); font-weight: 600;
+            font-size: var(--fs-2xs); color: rgba(255,255,255,0.55); font-weight: 600;
         }
         /* 카테고리 칩 */
         .flow-slot-cats {
@@ -190,7 +245,7 @@
         }
         .flow-cat-group:last-child { margin-bottom: 0; }
         .flow-cat-group-label {
-            font-size: 9px; font-weight: 800; letter-spacing: .4px;
+            font-size: var(--fs-2xs); font-weight: 800; letter-spacing: .4px;
             text-transform: uppercase; margin-bottom: 2px;
             padding-bottom: 2px;
             border-bottom: 1px solid rgba(255,255,255,0.12);
@@ -201,7 +256,7 @@
         .fcc-transit  .flow-cat-group-label { color: #6EE7B7; }
         .fcc-etc      .flow-cat-group-label { color: rgba(255,255,255,0.38); }
         .flow-cat-item {
-            font-size: 10px; padding: 1px 0;
+            font-size: var(--fs-xs); padding: 1px 0;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .fcc-meal     .flow-cat-item { color: rgba(255,213,128,0.85); }
@@ -211,26 +266,25 @@
         .fcc-etc      .flow-cat-item { color: rgba(255,255,255,0.45); }
         /* 요약 */
         .flow-summary {
-            font-size: 11px; color: rgba(255,255,255,0.55); margin-top: 6px;
+            font-size: var(--fs-sm); color: rgba(255,255,255,0.55); margin-top: 6px;
             display: flex; justify-content: space-between; align-items: center;
             padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);
         }
-        .flow-summary-total { font-weight: 800; color: #fff; font-size: 13px; }
+        .flow-summary-total { font-weight: 800; color: #fff; font-size: var(--fs-base); }
 
         /* ── 리스트 행 ── */
         .place-row { display: flex; align-items: flex-start; padding: 8px 6px; border-bottom: 1px solid #EBEBEB; gap: 8px; }
         .place-row:last-child { border-bottom: none; }
         .item-info { flex: 1; min-width: 0; }
-        .item-name { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-name { font-weight: 700; font-size: var(--fs-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .price-area { flex-shrink: 0; width: 90px; }
         .item-comment {
             display: block; width: 100%; margin-top: 3px;
-            font-size: 11px; color: #888; background: transparent; border: none;
+            font-size: var(--fs-sm); color: #1032e5; background: transparent; border: none;
             border-bottom: 1px dashed #e8e8e8; outline: none; padding: 1px 2px;
-            font-family: inherit;
         }
-        .item-comment:focus { border-bottom-color: #111; background: #F8F8F8; border-radius: 3px 3px 0 0; }
-        .item-comment::placeholder { color: #ccc; }
+        .item-comment:focus { border-bottom-color: #1032e5; background: #F0F3FF; border-radius: 3px 3px 0 0; }
+        .item-comment::placeholder { color: #b0bdf5; }
 
         /* ── 뱃지 ── */
         .type-badge { font-size: 10px; padding: 2px 5px; border-radius: 6px; font-weight: 700; margin-right: 6px; flex-shrink: 0; }
@@ -331,7 +385,9 @@
                 background: #F5F5F5; border-radius: 8px; padding: 8px 10px;
             }
             .pac-input-wrap { margin: 0; }
-            #pac-input { background: #F5F5F5; border: none !important; box-shadow: none !important; border-radius: 8px; }
+            #pac-input { background: #F5F5F5; border: none !important; box-shadow: none !important; border-radius: 8px; font-family: var(--font-family) !important; font-size: var(--fs-base) !important; }
+            /* PC에서는 input/select 폰트 크기 디자인 시스템으로 복원 */
+            .form-control, .form-select { font-size: var(--fs-base); }
 
             /* 오른쪽 패널 */
             .right-panel {
@@ -363,7 +419,7 @@
             }
         }
 
-        .total-amount { font-size: 18px; font-weight: 800; color: var(--primary-color); }
+        .total-amount { font-size: var(--fs-3xl); font-weight: 800; color: var(--primary-color); }
 
         /* ── 체크리스트 모달 ── */
         .cl-overlay {
@@ -388,9 +444,9 @@
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 20px 12px; border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
         }
-        .cl-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
+        .cl-header h6 { margin: 0; font-size: var(--fs-xl); font-weight: 700; }
         .cl-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
-        .cl-progress { padding: 8px 20px 0; font-size: 11px; color: #999; flex-shrink: 0; }
+        .cl-progress { padding: 8px 20px 0; font-size: var(--fs-sm); color: #999; flex-shrink: 0; }
         .cl-progress-bar-wrap { height: 3px; background: #EAEAEA; border-radius: 2px; margin: 6px 20px 0; flex-shrink: 0; }
         .cl-progress-bar { height: 100%; background: var(--primary-color); border-radius: 2px; transition: width .3s; }
         .cl-body { overflow-y: auto; flex: 1; padding: 8px 20px 16px; }
@@ -410,15 +466,16 @@
             width: 6px; height: 10px; border: 2px solid #fff;
             border-top: none; border-left: none; transform: rotate(45deg);
         }
-        .cl-label { flex: 1; font-size: 14px; cursor: pointer; }
+        .cl-label { flex: 1; font-size: var(--fs-lg); cursor: text; outline: none; border-radius: 4px; padding: 1px 4px; min-width: 0; word-break: break-all; }
         .cl-label.done { text-decoration: line-through; color: #bbb; }
+        .cl-label:focus { background: #F5F5F5; box-shadow: 0 0 0 2px #ddd; }
         .cl-del { background: none; border: none; color: #ddd; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
         .cl-del:hover { color: #e74c3c; }
         .cl-add-row { display: flex; gap: 8px; padding: 12px 20px; border-top: 1px solid #EBEBEB; flex-shrink: 0; }
-        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #E0E0E0; padding: 7px 10px; font-size: 13px; outline: none; font-family: inherit; }
+        .cl-add-row input { flex: 1; border-radius: 8px; border: 1px solid #E0E0E0; padding: 7px 10px; font-size: var(--fs-base); outline: none; }
         .cl-add-row input:focus { border-color: #111; }
-        .cl-add-row button { border-radius: 8px; background: #111; color: #fff; border: none; padding: 7px 16px; font-size: 13px; cursor: pointer; }
-        .cl-section-label { font-size: 10px; font-weight: 700; color: #aaa; letter-spacing: .5px; margin: 12px 0 4px; }
+        .cl-add-row button { border-radius: 8px; background: #111; color: #fff; border: none; padding: 7px 16px; font-size: var(--fs-base); cursor: pointer; }
+        .cl-section-label { font-size: var(--fs-xs); font-weight: 700; color: #aaa; letter-spacing: .5px; margin: 12px 0 4px; }
 
         /* ── 회화 모달 ── */
         .ph-overlay {
@@ -442,12 +499,12 @@
             padding: 16px 20px 12px; background: #fff;
             border-radius: 22px 22px 0 0; border-bottom: 1px solid #F0EDE8; flex-shrink: 0;
         }
-        .ph-header h6 { margin: 0; font-size: 15px; font-weight: 700; }
+        .ph-header h6 { margin: 0; font-size: var(--fs-xl); font-weight: 700; }
         .ph-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; }
         /* 카테고리 탭 */
         .ph-tabs {
             display: flex; overflow-x: auto; gap: 6px;
-            padding: 10px 16px; background: #fff;
+            padding: 10px 12px; background: #fff;
             border-bottom: 1px solid #EBEBEB; flex-shrink: 0;
             scrollbar-width: none; -ms-overflow-style: none;
             -webkit-overflow-scrolling: touch;
@@ -459,10 +516,11 @@
         .ph-tab {
             white-space: nowrap; flex-shrink: 0; scroll-snap-align: start;
             border: 1px solid #E5E5E5; background: #fff; color: #555;
-            border-radius: 16px; padding: 5px 12px; font-size: 12px; cursor: pointer;
-            font-family: inherit; font-weight: 500;
+            border-radius: 16px; padding: 5px 12px; font-size: var(--fs-md); cursor: pointer;
+            font-weight: 500;
         }
         .ph-tab.active { background: #111; border-color: #111; color: #fff; font-weight: 700; }
+        .ph-tab:first-child { margin-left: 0; }
         /* 카드 목록 */
         .ph-body { overflow-y: auto; flex: 1; padding: 12px 14px 20px; }
         .ph-card {
@@ -473,10 +531,10 @@
             position: relative;
         }
         .ph-card:active { box-shadow: 0 0 0 2px #111; }
-        .ph-korean { font-size: 12px; color: #888; margin-bottom: 4px; }
-        .ph-japanese { font-size: 17px; font-weight: 700; color: #111; letter-spacing: .5px; margin-bottom: 5px; }
-        .ph-pronun { font-size: 12px; color: #555; font-weight: 500; }
-        .ph-copy-hint { position: absolute; top: 10px; right: 12px; font-size: 10px; color: #ccc; }
+        .ph-korean { font-size: var(--fs-md); color: #888; margin-bottom: 4px; }
+        .ph-japanese { font-size: var(--fs-2xl); font-weight: 700; color: #111; letter-spacing: .5px; margin-bottom: 5px; }
+        .ph-pronun { font-size: var(--fs-md); color: #555; font-weight: 500; }
+        .ph-copy-hint { position: absolute; top: 10px; right: 12px; font-size: var(--fs-xs); color: #ccc; }
         .ph-copied { color: #28a745 !important; }
         .ph-speak-btn {
             border: none; background: #F0F0F0; color: #333;
@@ -486,15 +544,14 @@
             transition: background .15s;
         }
         .ph-speak-btn:active, .ph-speak-btn.speaking { background: #111; color: #fff; }
-
         /* ── 지도 마커 InfoWindow ── */
-        .marker-info { font-family: 'Noto Sans KR', sans-serif; min-width: 160px; }
-        .marker-info-cat { font-size: 10px; font-weight: 700; margin-bottom: 4px; }
-        .marker-info-name { font-size: 14px; font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
-        .marker-info-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #666; margin-top: 3px; }
+        .marker-info { font-family: var(--font-family); min-width: 160px; }
+        .marker-info-cat { font-size: var(--fs-xs); font-weight: 700; margin-bottom: 4px; }
+        .marker-info-name { font-size: var(--fs-lg); font-weight: 800; color: #1A1A2E; margin-bottom: 4px; }
+        .marker-info-row { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: #666; margin-top: 3px; }
         .marker-info-jpy { font-weight: 700; color: #111; }
-        .marker-info-comment { font-size: 11px; color: #888; margin-top: 4px; font-style: italic; }
-        .marker-info-time { font-size: 10px; padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-block; margin-bottom: 4px; }
+        .marker-info-comment { font-size: var(--fs-sm); color: #888; margin-top: 4px; font-style: italic; }
+        .marker-info-time { font-size: var(--fs-xs); padding: 2px 7px; border-radius: 8px; font-weight: 700; display: inline-block; margin-bottom: 4px; }
 
         /* ── 날짜 이동 팝업 ── */
         .day-picker-popup {
@@ -506,14 +563,14 @@
         }
         .day-picker-popup.open { display: block; }
         .day-picker-title {
-            font-size: 10px; color: #aaa; font-weight: 700;
+            font-size: var(--fs-xs); color: #aaa; font-weight: 700;
             letter-spacing: .4px; padding: 2px 6px 6px; border-bottom: 1px solid #F0EDE8;
             margin-bottom: 4px;
         }
         .day-picker-btn {
             display: block; width: 100%; text-align: left;
             background: none; border: none; padding: 6px 8px;
-            font-size: 13px; font-family: inherit; border-radius: 7px;
+            font-size: var(--fs-base); border-radius: 7px;
             cursor: pointer; color: #333; font-weight: 500;
             transition: background .12s;
         }
@@ -524,18 +581,18 @@
         .fab-wrap {
             position: fixed;
             bottom: 24px;
-            right: 18px;
+            left: 18px;
             z-index: 1500;
             display: flex;
             flex-direction: column;
             gap: 10px;
-            align-items: flex-end;
+            align-items: flex-start;
         }
         .fab-btn {
             display: flex; align-items: center; gap: 8px;
             padding: 11px 20px 11px 16px;
             border-radius: 50px; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 700; font-family: inherit;
+            font-size: var(--fs-base); font-weight: 700;
             box-shadow: 0 4px 18px rgba(0,0,0,0.14);
             transition: transform .15s, box-shadow .15s;
             white-space: nowrap;
@@ -545,15 +602,29 @@
         .fab-icon {
             width: 28px; height: 28px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-size: 15px; flex-shrink: 0;
+            font-size: var(--fs-xl); flex-shrink: 0;
         }
-        .fab-checklist { background: #111; color: #fff; }
-        .fab-checklist .fab-icon { background: rgba(255,255,255,0.15); }
-        .fab-phrase    { background: #111; color: #fff; }
-        .fab-phrase    .fab-icon { background: rgba(255,255,255,0.15); }
-        /* 모바일: 고정 footer-total 위로 */
+        .fab-checklist { background: #666; color: #fff; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+        .fab-checklist .fab-icon { background: transparent; }
+        .fab-phrase    { background: #666; color: #fff; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
+        .fab-phrase    .fab-icon { background: transparent; }
+        /* 모바일: 왼쪽 배치 + 아이콘 전용 원형 버튼 */
         @media (max-width: 767px) {
-            .fab-wrap { bottom: 76px; right: 14px; }
+            .fab-wrap { bottom: 76px; right: auto; left: 14px; gap: 8px; }
+            .fab-btn {
+                padding: 0;
+                width: 48px; height: 48px;
+                border-radius: 50%;
+                justify-content: center;
+                font-size: 0; /* 텍스트 숨김 */
+                gap: 0;
+            }
+            .fab-icon {
+                width: 48px; height: 48px;
+                border-radius: 50%;
+                font-size: 22px;
+                background: transparent;
+            }
         }
     </style>
 </head>
@@ -573,35 +644,35 @@
                 <!-- 환율 -->
                 <div class="rate-row" style="flex-direction:column; align-items:stretch; gap:6px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:11px; color:#999; white-space:nowrap;">💱 환율 (100엔)</span>
+                        <span style="font-size:var(--fs-sm); color:#999; white-space:nowrap;">💱 환율 (100엔)</span>
                         <input type="number" id="global-rate" class="form-control form-control-sm text-center" value="945" style="max-width:76px; font-weight:bold;">
-                        <span style="font-size:11px; color:#aaa;">KRW</span>
+                        <span style="font-size:var(--fs-sm); color:#aaa;">KRW</span>
                         <button id="rate-refresh-btn" onclick="fetchLiveRate()" title="실시간 환율 가져오기"
-                            style="border:none;background:#F0F0F0;color:#333;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;white-space:nowrap;margin-left:auto;">🔄 실시간</button>
+                            style="border:none;background:#F0F0F0;color:#333;border-radius:6px;padding:3px 8px;font-size:var(--fs-sm);cursor:pointer;white-space:nowrap;margin-left:auto;">🔄 실시간</button>
                     </div>
-                    <div id="rate-status" style="font-size:10px; color:#aaa; padding-left:2px;"></div>
+                    <div id="rate-status" style="font-size:var(--fs-xs); color:#aaa; padding-left:2px;"></div>
                     <!-- 엔화 → 원화 변환기 -->
                     <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
                         <input type="number" id="jpy-input" placeholder="¥ 엔화 입력" oninput="calcKrw()"
-                            style="flex:1; border:none; border-bottom:1px solid #dde; background:transparent; font-size:13px; font-weight:700; outline:none; padding:3px 2px; font-family:inherit; min-width:0;">
-                        <span style="font-size:11px; color:#aaa; white-space:nowrap;">→</span>
-                        <span id="krw-result" style="font-size:13px; font-weight:800; color:#111; white-space:nowrap; min-width:60px; text-align:right;">-</span>
-                        <span style="font-size:11px; color:#aaa;">원</span>
+                            style="flex:1; border:none; border-bottom:1px solid #dde; background:transparent; font-size:var(--fs-base); font-weight:700; outline:none; padding:3px 2px; font-family:inherit; min-width:0;">
+                        <span style="font-size:var(--fs-sm); color:#aaa; white-space:nowrap;">→</span>
+                        <span id="krw-result" style="font-size:var(--fs-base); font-weight:800; color:#111; white-space:nowrap; min-width:60px; text-align:right;">-</span>
+                        <span style="font-size:var(--fs-sm); color:#aaa;">원</span>
                     </div>
                 </div>
 
                 <!-- 수기 추가 -->
                 <div class="top-control-card">
-                    <div style="font-size:10px; color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
+                    <div style="font-size:var(--fs-xs); color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
                     <!-- 시간대 + 분류 -->
                     <div style="display:flex; gap:6px; margin-bottom:6px;">
-                        <select id="manual-time" class="form-select form-select-sm" style="flex:1; font-size:12px;">
+                        <select id="manual-time" class="form-select form-select-sm" style="flex:1; font-size:var(--fs-md);">
                             <option value="아침">🌅 아침</option>
                             <option value="점심" selected>☀️ 점심</option>
                             <option value="저녁">🌙 저녁</option>
                             <option value="미정">❓ 미정</option>
                         </select>
-                        <select id="manual-cat" class="form-select form-select-sm" style="flex:1; font-size:12px;">
+                        <select id="manual-cat" class="form-select form-select-sm" style="flex:1; font-size:var(--fs-md);">
                             <option value="식사" selected>🍽️ 식사</option>
                             <option value="장소">📍 장소</option>
                             <option value="쇼핑">🛍️ 쇼핑</option>
@@ -611,25 +682,25 @@
                     </div>
                     <!-- 이름 + 추가 버튼 -->
                     <div class="input-group input-group-sm mb-1">
-                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:12px;">
+                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:var(--fs-md);">
                         <button class="btn btn-primary px-3" onclick="addManualItem()">+</button>
                     </div>
-                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-1" placeholder="💬 메모 (선택사항)" style="font-size:11px; border-radius:6px; color:#555; background:#fff;">
+                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-1" placeholder="💬 메모 (선택사항)" style="font-size:var(--fs-sm); border-radius:6px; color:#555; background:#fff;">
                 </div>
 
                 <!-- 장소 검색 -->
                 <div class="pac-input-wrap">
-                    <div style="font-size:10px; color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
+                    <div style="font-size:var(--fs-xs); color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
                     <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
                     <!-- 핀 미리보기 확인 카드 -->
                     <div id="place-preview" style="display:none; margin-top:8px; background:#F5F5F5; border-radius:10px; padding:10px 12px; border:1px solid #E0E0E0;">
-                        <div style="font-size:11px; color:#111; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
-                        <div style="font-size:12px; font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
-                        <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:13px; font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
-                        <div style="font-size:10px; color:#888; margin-bottom:8px;" id="preview-addr"></div>
+                        <div style="font-size:var(--fs-sm); color:#111; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
+                        <div style="font-size:var(--fs-md); font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
+                        <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:var(--fs-base); font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
+                        <div style="font-size:var(--fs-xs); color:#888; margin-bottom:8px;" id="preview-addr"></div>
                         <div style="display:flex; gap:6px;">
-                            <button onclick="confirmAddPlace()" class="btn btn-primary btn-sm" style="flex:1; font-size:12px;">+ 일정에 추가</button>
-                            <button onclick="cancelPreview()" class="btn btn-outline-secondary btn-sm" style="font-size:12px;">취소</button>
+                            <button onclick="confirmAddPlace()" class="btn btn-primary btn-sm" style="flex:1; font-size:var(--fs-md);">+ 일정에 추가</button>
+                            <button onclick="cancelPreview()" class="btn btn-outline-secondary btn-sm" style="font-size:var(--fs-md);">취소</button>
                         </div>
                     </div>
                 </div>
@@ -644,6 +715,7 @@
                     <div class="flow-title" style="color: #FFFF;">📅 오늘의 여행 흐름</div>
                     <div id="day-flow-inner"></div>
                 </div>
+                <div class="nav-pills-wrap">
                 <ul class="nav nav-pills" id="pills-tab">
                     <li class="nav-item"><button class="nav-link active" onclick="changeDay(this, 'day1')">4/8(수)</button></li>
                     <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day2')">4/9(목)</button></li>
@@ -651,13 +723,14 @@
                     <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day4')">4/11(토)</button></li>
                     <li class="nav-item"><button class="nav-link" onclick="changeDay(this, 'day5')">4/12(일)</button></li>
                 </ul>
+                </div>
             </div>
             <div class="right-panel-body">
                 <div id="expense-list-container"></div>
             </div>
             <div class="footer-total">
-                <span style="font-size:11px; color:#999;">✈️ 고정비 포함 총액</span>
-                <span class="total-amount"><span id="grand-total">0</span>원</span>
+                <span style="font-size:var(--fs-sm); color:#999;">총액</span>
+                <span class="total-amount" id="grand-total">¥0 (0원)</span>
             </div>
         </div>
     </div>
@@ -712,15 +785,15 @@
             <h6>🗣️ 일본어 여행 회화</h6>
             <button class="ph-close" onclick="closePhrasebook()">×</button>
         </div>
-        <div class="ph-tabs" id="ph-tabs"></div>
+        <div class="ph-tabs" id="ph-tabs" style="margin-left: 10px;"></div>
         <div class="ph-body" id="ph-body"></div>
     </div>
 </div>
 
 <!-- 모바일 전용 고정 푸터 (PC에서는 display:none) -->
 <div class="footer-total d-md-none" id="mobile-footer">
-    <span style="font-size:11px; color:#666;">고정비 포함 총액</span>
-    <span class="total-amount"><span id="grand-total-mobile">0</span>원</span>
+    <span style="font-size:var(--fs-sm); color:#666;">총액</span>
+    <span class="total-amount" id="grand-total-mobile">¥0 (0원)</span>
 </div>
 
 <script type="module">
@@ -750,9 +823,9 @@
     const FIXED_KRW = 534880 + 1000000;
     const HOTEL_COORDS = { lat: 35.6637, lng: 139.7313 };
     const AUTO_SCHEDULE = {
-        day1: ["✈️ 비행기 (07:10~09:45)", "🏨 렘 롯폰기 체크인"],
+        day1: ["✈️ 비행기 (07:10~09:45)", "🏨 렘 롯폰기 체크인 (14:00)"],
         day2: ["🏨 숙박 (렘 롯폰기)"], day3: ["🏨 숙박 (렘 롯폰기)"], day4: ["🏨 숙박 (렘 롯폰기)"],
-        day5: ["🏨 렘 롯폰기 체크아웃", "✈️ 비행기 (11:40~14:30)"]
+        day5: ["🏨 렘 롯폰기 체크아웃 (12:00)", "✈️ 비행기 (11:40~14:30)"]
     };
 
     async function loadGoogleMaps() {
@@ -1111,7 +1184,8 @@
 
         const mainItems = [...groups['아침'], ...groups['점심'], ...groups['저녁']];
         const totalItems = mainItems.length + groups['미정'].length;
-        const totalKrw   = Math.floor(mainItems.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+        const totalJpy   = mainItems.reduce((s, i) => s + (i.jpy || 0), 0);
+        const totalKrw   = Math.floor(totalJpy * rate);
 
         // 캐릭터 행 (슬롯과 동일 그리드 컬럼)
         let charRowHtml = '<div class="flow-char-row">';
@@ -1127,7 +1201,7 @@
         TIME_NODES.forEach((node, idx) => {
             const items    = groups[node.key];
             const cnt      = items.length;
-            const krw      = Math.floor(items.reduce((s, i) => s + (i.jpy || 0), 0) * rate);
+            const slotJpy  = items.reduce((s, i) => s + (i.jpy || 0), 0);
             const hasItems = cnt > 0;
             const isCurrent = node.key === currentSlot;
 
@@ -1150,8 +1224,8 @@
             }).join('');
 
             const dotClass = `flow-slot-dot${hasItems ? ' has-items' : ' empty'}${isCurrent ? ' current' : ''}`;
-            const krwHtml  = krw > 0
-                ? `<div class="flow-slot-krw">${krw >= 10000 ? (krw/10000).toFixed(1)+'만' : krw.toLocaleString()}원</div>` : '';
+            const krwHtml  = slotJpy > 0
+                ? `<div class="flow-slot-krw">¥${slotJpy.toLocaleString()}</div>` : '';
 
             slotsHtml += `
                 <div class="flow-slot">
@@ -1170,7 +1244,7 @@
         // 요약
         const summaryHtml = `<div class="flow-summary">
             <span style="color: #FFFF;">${totalItems > 0 ? `총 ${totalItems}개 일정` : '아직 일정이 없어요 ✈️'}</span>
-            <span class="flow-summary-total">${totalKrw > 0 ? `예상 ${totalKrw.toLocaleString()}원` : ''}</span>
+            <span class="flow-summary-total">${totalJpy > 0 ? `¥${totalJpy.toLocaleString()} (${totalKrw.toLocaleString()}원)` : ''}</span>
         </div>`;
 
         inner.innerHTML = charRowHtml + slotsHtml + summaryHtml;
@@ -1267,7 +1341,7 @@
                     <span>${meta.label}</span>
                     <span style="font-size:10px; opacity:.6;">${entries.length}건</span>
                 </div>
-                <span class="section-subtotal">${subtotalKrw > 0 ? subtotalKrw.toLocaleString() + '원' : '-'}</span>
+                <span class="section-subtotal">${subtotalJpy > 0 ? '¥' + subtotalJpy.toLocaleString() : '-'}</span>
             `;
             section.appendChild(header);
 
@@ -1368,19 +1442,18 @@
 
     function updateGrandTotal() {
         const rate = (window.tripData.rate || 945) / 100;
-        let totalJpyInKrw = 0;
+        let totalJpy = 0;
         if (window.tripData.days) {
             Object.values(window.tripData.days).forEach(day => {
-                if (day) Object.values(day).forEach(item => { totalJpyInKrw += (item.jpy * rate); });
+                if (day) Object.values(day).forEach(item => { totalJpy += (item.jpy || 0); });
             });
         }
-        const total = Math.floor(totalJpyInKrw + FIXED_KRW).toLocaleString();
-        // PC용 (right-panel 내부)
+        const totalKrw = Math.floor(totalJpy * rate);
+        const text = `¥${totalJpy.toLocaleString()}엔 (KRW: ${totalKrw.toLocaleString()}원)`;
         const el = document.getElementById('grand-total');
-        if (el) el.innerText = total;
-        // 모바일용 (고정 푸터)
+        if (el) el.innerText = text;
         const elM = document.getElementById('grand-total-mobile');
-        if (elM) elM.innerText = total;
+        if (elM) elM.innerText = text;
     }
 
     document.getElementById('global-rate').addEventListener('input', (e) => {
@@ -1526,7 +1599,11 @@
             row.innerHTML = `
                 <input type="checkbox" class="cl-checkbox" id="cl-${id}" ${item.checked ? 'checked' : ''}
                     onchange="toggleCheckItem('${id}', this.checked)">
-                <label class="cl-label ${item.checked ? 'done' : ''}" for="cl-${id}">${item.text}</label>
+                <span class="cl-label ${item.checked ? 'done' : ''}"
+                    contenteditable="true"
+                    onblur="renameCheckItem('${id}', this)"
+                    onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"
+                    >${item.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
                 <button class="cl-del" onclick="deleteCheckItem('${id}')">✕</button>
             `;
             body.appendChild(row);
@@ -1535,12 +1612,21 @@
 
     window.openChecklist = () => {
         document.getElementById('cl-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
         renderChecklist();
     };
-    window.closeChecklist = () => document.getElementById('cl-overlay').classList.remove('open');
+    window.closeChecklist = () => {
+        document.getElementById('cl-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    };
     window.overlayClose = (e) => { if (e.target === document.getElementById('cl-overlay')) window.closeChecklist(); };
 
     window.toggleCheckItem = (id, checked) => update(ref(db, `tokyo_trip/checklist/${id}`), { checked });
+    window.renameCheckItem = (id, el) => {
+        const newText = el.textContent.trim();
+        if (!newText) { el.textContent = clData[id]?.text || ''; return; }
+        if (newText !== clData[id]?.text) update(ref(db, `tokyo_trip/checklist/${id}`), { text: newText });
+    };
     window.deleteCheckItem = (id) => remove(ref(db, `tokyo_trip/checklist/${id}`));
     window.addCheckItem = () => {
         const input = document.getElementById('cl-new-input');
@@ -1557,11 +1643,14 @@
     // ── 회화 ──
     const PHRASES = [
         // 기본
-        { cat: '기본', ko: '안녕하세요.', jp: 'こんにちは。', pr: '콘니치와 ↘' },
+        { cat: '기본', ko: '안녕하세요.', jp: 'こんにちは。', pr: '콘니치와 (평탄하게)' },
         { cat: '기본', ko: '감사합니다.', jp: 'ありがとうございます。', pr: '아리가토~고자이마스 ↘' },
-        { cat: '기본', ko: '죄송합니다 / 실례합니다.', jp: 'すみません。', pr: '스미마셍 ↗' },
+        { cat: '기본', ko: '죄송합니다 / 실례합니다.', jp: 'すみません。', pr: '스미마셍 ↗ (부를 때) / ↘ (사과할 때)' },
         { cat: '기본', ko: '괜찮아요.', jp: '大丈夫です。', pr: '다이죠~부데스 ↘' },
         { cat: '기본', ko: '모르겠어요. / 이해 못 했어요.', jp: 'わかりません。', pr: '와카리마셍 ↘' },
+        { cat: '기본', ko: '이거 주세요.', jp: 'これをください。', pr: '고레오 구다사이 ↘' },
+        { cat: '기본', ko: '~은/는 어디인가요?', jp: '〜はどこですか。', pr: '~와 도코데스까 ↗' },
+        { cat: '기본', ko: '일본어 못해요.', jp: '日本語できません。', pr: '니홍고 데키마셍 ↘' },
         { cat: '기본', ko: '일본어를 잘 못해요.', jp: '日本語があまり上手じゃないです。', pr: '니홍고가 아마리 죠~즈쟈나이데스 ↘' },
         { cat: '기본', ko: '한국어 할 수 있는 분 있나요?', jp: '韓国語できる方いますか。', pr: '칸코쿠고 데키루카타 이마스까 ↗' },
         { cat: '기본', ko: '화장실은 어디인가요?', jp: 'トイレはどこですか。', pr: '토이레와 도코데스까 ↗' },
@@ -1572,11 +1661,11 @@
         { cat: '식당/카페', ko: '추천 메뉴는 무엇인가요?', jp: 'おすすめは何ですか。', pr: '오스스메와 난데스까 ↗' },
         { cat: '식당/카페', ko: '생맥주 하나 주세요.', jp: '生ビール一つください。', pr: '나마비~루 히토츠 구다사이 ↘' },
         { cat: '식당/카페', ko: '저것과 똑같은 걸로 주세요.', jp: 'あれと同じものください。', pr: '아레또 오나지모노 구다사이 ↘' },
-        { cat: '식당/카페', ko: '맛있어요!', jp: 'おいしい！', pr: '오이시이! ↗' },
+        { cat: '식당/카페', ko: '맛있어요!', jp: 'おいしい！', pr: '오이시이~ ↗' },
         { cat: '식당/카페', ko: '얼마나 기다려야 하나요?', jp: 'どのくらい待ちますか。', pr: '도노쿠라이 마치마스까 ↗' },
         { cat: '식당/카페', ko: '따로따로 계산할게요.', jp: '別々に会計します。', pr: '베츠베츠니 카이케이 시마스 ↘' },
         { cat: '식당/카페', ko: '계산서 주세요.', jp: 'お会計をお願いします。', pr: '오카이케이오 오네가이시마스 ↘' },
-        { cat: '식당/카페', ko: '물 좀 주세요.', jp: 'おひや(お水)ください。', pr: '오히야(미즈) 구다사이 ↘' },
+        { cat: '식당/카페', ko: '물 좀 주세요.', jp: 'おひや(お水)ください。', pr: '오미즈 구다사이 ↘' },
         { cat: '식당/카페', ko: '물티슈 주세요.', jp: 'ウェットティッシュください。', pr: '웨또 티슈 구다사이 ↘' },
         { cat: '식당/카페', ko: '소금 좀 주세요.', jp: '塩をください。', pr: '시오 구다사이 ↘' },
         { cat: '식당/카페', ko: '이거 안 시켰어요.', jp: 'これ、頼んでいません。', pr: '고레, 타논데 이마셍 ↘' },
@@ -1600,6 +1689,8 @@
         { cat: '쇼핑', ko: '이거 얼마인가요?', jp: 'これいくらですか。', pr: '고레 이쿠라데스까 ↗' },
         { cat: '쇼핑', ko: '면세 되나요?', jp: '免税できますか。', pr: '멘제이 데키마스까 ↗' },
         { cat: '쇼핑', ko: '카드 되나요?', jp: 'カード使えますか。', pr: '카~도 츠카에마스까 ↗' },
+        { cat: '쇼핑', ko: '계산(결제)해 주세요.', jp: 'お会計お願いします。', pr: '오카이케이 오네가이시마스 ↘' },
+        { cat: '쇼핑', ko: '카드로 할게요.', jp: 'カードでお願いします。', pr: '카~도데 오네가이시마스 ↘' },
         { cat: '쇼핑', ko: '일시불로 해주세요.', jp: '一括でお願いします。', pr: '잇카츠데 오네가이시마스 ↘' },
         { cat: '쇼핑', ko: '봉투 하나 주세요.', jp: '袋を1つください。', pr: '후쿠로~ 히토츠 구다사이 ↘' },
         { cat: '쇼핑', ko: '다른 색깔 있나요?', jp: '別の色(色違い)ありますか。', pr: '이로치가이와 아리마셍까 ↗' },
@@ -1615,6 +1706,8 @@
         // 숙소/호텔
         { cat: '숙소/호텔', ko: '체크인 부탁합니다.', jp: 'チェックインお願いします。', pr: '체쿠인 오네가이시마스 ↘' },
         { cat: '숙소/호텔', ko: '체크아웃 부탁합니다.', jp: 'チェックアウトお願いします。', pr: '체쿠아우토 오네가이시마스 ↘' },
+        { cat: '숙소/호텔', ko: '짐을 맡아주세요.', jp: '荷物を預かってください。', pr: '니모츠오 아즈캇테 구다사이 ↘' },
+        { cat: '숙소/호텔', ko: '짐을 맡길 수 있나요?', jp: '荷物を預かれますか。', pr: '니모츠오 아즈카레마스까 ↗' },
         { cat: '숙소/호텔', ko: '짐을 좀 맡아주실 수 있나요?', jp: '荷物を預かってもらえますか。', pr: '니모츠오 아즈캇테 모라에마스까 ↗' },
         { cat: '숙소/호텔', ko: '수건을 더 받을 수 있나요?', jp: 'タオルもっともらえますか。', pr: '타오루 못또 모라에마스까 ↗' },
         { cat: '숙소/호텔', ko: '방에 열쇠를 두고 나왔어요.', jp: '部屋に鍵を置いたまま出ました。', pr: '헤야니 카기오 오이따마마 데마시타 ↘' },
@@ -1628,6 +1721,10 @@
         { cat: '숙소/호텔', ko: '바디워시 좀 더 받을 수 있나요?', jp: 'ボディソープもっともらえますか。', pr: '보디소~푸 못또 모라에마스까 ↗' },
         { cat: '숙소/호텔', ko: '어메니티 좀 더 받을 수 있나요?', jp: 'アメニティもっともらえますか。', pr: '아메니티 못또 모라에마스까 ↗' },
         { cat: '숙소/호텔', ko: '방이 추워요.', jp: '部屋が寒いです。', pr: '헤야가 사무이데스 ↘' },
+        { cat: '숙소/호텔', ko: '[직원] 알겠습니다. (격식)', jp: 'かしこまりました。', pr: '카시코마리마시타 ↘' },
+        { cat: '숙소/호텔', ko: '[직원] 성함이 어떻게 되시나요?', jp: 'お名前は何ですか。', pr: '오나마에와 난데스까 ↗' },
+        { cat: '숙소/호텔', ko: '[직원] 맡겠습니다 / 보관하겠습니다.', jp: 'お預かりします。', pr: '오아즈카리시마스 ↘' },
+        { cat: '숙소/호텔', ko: 'OOO입니다. (이름 말할 때)', jp: '〇〇〇です。', pr: '(이름) 데스 ↘' },
         // 편의점
         { cat: '편의점', ko: '[직원] 포인트 카드 있으신가요?', jp: 'ポイントカードはお持ちですか。', pr: '포인토 카~도와 오모치데스까 ↗' },
         { cat: '편의점', ko: '[나] 아니요, 없습니다.', jp: 'いいえ、ないです。', pr: '이~에, 나이데스 ↘' },
@@ -1693,6 +1790,7 @@
         list.forEach(p => {
             const card = document.createElement('div');
             card.className = 'ph-card';
+
             const jpSafe = p.jp.replace(/'/g, '&#39;');
             card.innerHTML = `
                 <div class="ph-copy-hint" id="hint-${body.children.length}">탭하면 복사</div>
@@ -1714,17 +1812,23 @@
         });
     }
 
-    // 일본어 TTS
+    // 일본어 TTS — 고품질 음성 우선 선택
     window.speakJapanese = (text, btn) => {
         if (!window.speechSynthesis) return;
         window.speechSynthesis.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         utter.lang = 'ja-JP';
-        utter.rate = 0.9;
-        // 일본어 음성 우선 선택
+        utter.rate = 0.85;
+        utter.pitch = 1.0;
+        utter.volume = 1.0;
         const voices = window.speechSynthesis.getVoices();
-        const jaVoice = voices.find(v => v.lang.startsWith('ja'));
-        if (jaVoice) utter.voice = jaVoice;
+        const jaVoices = voices.filter(v => v.lang.startsWith('ja'));
+        // Google > Microsoft > Apple 계열 > 기타 순 우선
+        const preferred = jaVoices.find(v => /Google/.test(v.name))
+            || jaVoices.find(v => /Microsoft/.test(v.name))
+            || jaVoices.find(v => /Kyoko|O-Ren|Otoya/.test(v.name))
+            || jaVoices[0];
+        if (preferred) utter.voice = preferred;
         btn.classList.add('speaking');
         utter.onend = () => btn.classList.remove('speaking');
         utter.onerror = () => btn.classList.remove('speaking');
@@ -1759,12 +1863,30 @@
 
     window.openPhrasebook = () => {
         document.getElementById('ph-overlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
         renderPhrasebook();
     };
-    window.closePhrasebook = () => document.getElementById('ph-overlay').classList.remove('open');
+    window.closePhrasebook = () => {
+        document.getElementById('ph-overlay').classList.remove('open');
+        document.body.style.overflow = '';
+    };
     window.phOverlayClose = (e) => { if (e.target === document.getElementById('ph-overlay')) window.closePhrasebook(); };
 
     loadGoogleMaps();
+
+    // 탭 스크롤 fade 제어
+    const pillsEl = document.getElementById('pills-tab');
+    const pillsWrap = pillsEl?.closest('.nav-pills-wrap');
+    function updatePillsFade() {
+        if (!pillsEl || !pillsWrap) return;
+        const { scrollLeft, scrollWidth, clientWidth } = pillsEl;
+        pillsWrap.classList.toggle('fade-left',  scrollLeft > 4);
+        pillsWrap.classList.toggle('fade-right', scrollLeft < scrollWidth - clientWidth - 4);
+    }
+    if (pillsEl) {
+        pillsEl.addEventListener('scroll', updatePillsFade, { passive: true });
+        updatePillsFade();
+    }
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
