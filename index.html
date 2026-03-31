@@ -286,6 +286,8 @@
             display: block; width: 100%; margin-top: 3px;
             font-size: var(--fs-sm); color: #1032e5; background: transparent; border: none;
             border-bottom: 1px dashed #e8e8e8; outline: none; padding: 1px 2px;
+            resize: none; overflow: hidden; line-height: 1.4; font-family: inherit;
+            field-sizing: content; min-height: 1.4em;
         }
         .item-comment:focus { border-bottom-color: #1032e5; background: #F0F3FF; border-radius: 3px 3px 0 0; }
         .item-comment::placeholder { color: #b0bdf5; }
@@ -1410,9 +1412,9 @@
                             <span class="item-name">${item.name}</span>
                         </div>
                         ${krw > 0 ? `<div style="font-size:10px; color:#777; margin-bottom:1px;">${krw.toLocaleString()}원 · ¥${item.jpy}</div>` : ''}
-                        <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
+                        <textarea class="item-comment" rows="1" placeholder="💬 메모..."
                             onblur="updateComment('${id}', this.value)"
-                            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">${(item.comment || '').replace(/</g,'&lt;')}</textarea>
                     </div>
                     <div class="price-area"><div class="input-group input-group-sm">
                         <input type="number" class="form-control text-end" value="${item.jpy || ''}"
@@ -1445,10 +1447,13 @@
                     const nameEl = row.querySelector('.item-name');
                     nameEl.classList.add('clickable');
                     nameEl.addEventListener('click', () => {
-                        window.googleMap.panTo({ lat: item.lat, lng: item.lng });
-                        window.googleMap.setZoom(16);
-                        const m = window.markerMap[id];
-                        if (m) google.maps.event.trigger(m, 'click');
+                        document.getElementById('map').closest('.map-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        setTimeout(() => {
+                            window.googleMap.panTo({ lat: item.lat, lng: item.lng });
+                            window.googleMap.setZoom(16);
+                            const m = window.markerMap[id];
+                            if (m) google.maps.event.trigger(m, 'click');
+                        }, 400);
                     });
                 }
 
