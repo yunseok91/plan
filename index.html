@@ -277,6 +277,10 @@
         .place-row:last-child { border-bottom: none; }
         .item-info { flex: 1; min-width: 0; }
         .item-name { font-weight: 700; font-size: var(--fs-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-seq-badge { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        .flow-seq-badge { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; color: #fff; font-size: 9px; font-weight: 800; font-family: sans-serif; margin-right: 3px; vertical-align: middle; flex-shrink: 0; }
+        .item-name.clickable { display: inline-block; padding: 2px 10px; border-radius: 20px; background: #111111ab; color: #fff; border: none; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: background .15s; font-weight: 600; letter-spacing: 0.01em; }
+        .item-name.clickable:hover { background: #111111cc; }
         .price-area { flex-shrink: 0; width: 90px; }
         .item-comment {
             display: block; width: 100%; margin-top: 3px;
@@ -340,6 +344,20 @@
                 padding: 20px 24px 30px;
             }
 
+        @media (min-width: 1440px) {
+            .page-wrapper {
+                max-width: 1600px;
+                padding: 24px 40px 40px;
+            }
+            .main-layout {
+                grid-template-columns: 500px 1fr;
+                gap: 20px;
+            }
+            .map-card {
+                height: 540px;
+            }
+        }
+
             /* 헤더 */
             .page-title {
                 background: #fff;
@@ -353,7 +371,7 @@
             /* 2-column grid */
             .main-layout {
                 display: grid;
-                grid-template-columns: 380px 1fr;
+                grid-template-columns: 440px 1fr;
                 gap: 16px;
                 align-items: start;
             }
@@ -1187,6 +1205,15 @@
         const totalJpy   = mainItems.reduce((s, i) => s + (i.jpy || 0), 0);
         const totalKrw   = Math.floor(totalJpy * rate);
 
+        // 시간대 순서대로 lat 있는 항목에 번호 부여
+        let flowMarkerNum = 0;
+        const flowNumMap = new Map();
+        ['아침','점심','저녁'].forEach(slot => {
+            (groups[slot] || []).forEach(item => {
+                if (item.lat) flowNumMap.set(item, ++flowMarkerNum);
+            });
+        });
+
         // 캐릭터 행 (슬롯과 동일 그리드 컬럼)
         let charRowHtml = '<div class="flow-char-row">';
         TIME_NODES.forEach((node, idx) => {
@@ -1214,9 +1241,11 @@
             });
             const catsHtml = CAT_ORDER.filter(c => catGroups[c]).map(c => {
                 const m = CAT_CHIP[c];
-                const itemsHtml = catGroups[c].map(item =>
-                    `<div class="flow-cat-item">${m.icon} ${(item.name||'').slice(0,7)}</div>`
-                ).join('');
+                const itemsHtml = catGroups[c].map(item => {
+                    const num = flowNumMap.get(item);
+                    const badge = num ? `<span class="flow-seq-badge" style="background:${CAT_META[c]?.mapColor||'#6B7280'}">${num}</span>` : '';
+                    return `<div class="flow-cat-item">${badge}${m.icon} ${(item.name||'').slice(0,7)}</div>`;
+                }).join('');
                 return `<div class="flow-cat-group ${m.cls}">
                     <div class="flow-cat-group-label">${m.label}</div>
                     ${itemsHtml}
@@ -1285,6 +1314,8 @@
         container.innerHTML = "";
         window.googleMarkers.forEach(m => m.setMap(null));
         window.googleMarkers = [];
+        window.markerMap = {};
+        if (window.routePolyline) { window.routePolyline.setMap(null); window.routePolyline = null; }
 
         // 호텔 마커
         const hotelDiv = document.createElement('div');
@@ -1321,6 +1352,8 @@
 
         const orderedTimes = [...TIME_ORDER.filter(t => groups[t]),
                              ...TIME_ORDER.filter(t => !groups[t])];
+        let markerNum = 0;
+        const polylinePath = [];
 
         orderedTimes.forEach(timeSlot => {
             const entries = groups[timeSlot] || [];
@@ -1356,6 +1389,8 @@
             entries.forEach(({ id, item }) => {
                 const krw = Math.floor((item.jpy || 0) * rate);
                 const catM = CAT_META[item.cat] || CAT_META['기타'];
+                const isScheduled = ['아침','점심','저녁'].includes(timeSlot);
+                const rowNum = (isScheduled && item.lat) ? ++markerNum : null;
                 const row = document.createElement('div');
                 row.className = 'place-row';
                 row.draggable = false;
@@ -1371,7 +1406,8 @@
                                 <option value="교통" ${(item.cat||'기타')==='교통'?'selected':''}>🚃 교통</option>
                                 <option value="기타" ${(!item.cat||item.cat==='기타')?'selected':''}>📌 기타</option>
                             </select>
-                            <span class="item-name" style="flex:1; min-width:0;">${item.name}</span>
+                            ${rowNum ? `<span class="item-seq-badge" style="background:${catM.mapColor};">${rowNum}</span>` : ''}
+                            <span class="item-name">${item.name}</span>
                         </div>
                         ${krw > 0 ? `<div style="font-size:10px; color:#777; margin-bottom:1px;">${krw.toLocaleString()}원 · ¥${item.jpy}</div>` : ''}
                         <input class="item-comment" type="text" value="${(item.comment || '').replace(/"/g, '&quot;')}" placeholder="💬 메모..."
@@ -1404,17 +1440,38 @@
                     row.draggable = false;
                 });
 
+                // item-name 클릭 → 지도 포커스 + InfoWindow
+                if (item.lat) {
+                    const nameEl = row.querySelector('.item-name');
+                    nameEl.classList.add('clickable');
+                    nameEl.addEventListener('click', () => {
+                        window.googleMap.panTo({ lat: item.lat, lng: item.lng });
+                        window.googleMap.setZoom(16);
+                        const m = window.markerMap[id];
+                        if (m) google.maps.event.trigger(m, 'click');
+                    });
+                }
+
                 zone.appendChild(row);
 
-                // 지도 마커 (분류 기준)
+                // 지도 마커 (번호 순서 — 미정 제외)
                 if (item.lat) {
+                    if (isScheduled) {
+                        polylinePath.push({ lat: item.lat, lng: item.lng });
+                    }
                     const pin = document.createElement('div');
-                    pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;`;
-                    pin.textContent = catM.mapEmoji;
+                    if (isScheduled) {
+                        pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;font-family:sans-serif;`;
+                        pin.textContent = rowNum;
+                    } else {
+                        pin.style.cssText = `background:${catM.mapColor};color:#fff;border-radius:50%;border:2px solid #fff;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;`;
+                        pin.textContent = catM.mapEmoji;
+                    }
                     const marker = new window.AdvancedMarkerElement({ map: window.googleMap, position: { lat: item.lat, lng: item.lng }, content: pin });
 
                     // 클릭 시 InfoWindow
                     const TIME_STYLE = { '아침':'background:#FEFBF2;color:#B87C10', '점심':'background:#F0F7F2;color:#2E7A45', '저녁':'background:#FEF5EE;color:#C96620', '미정':'background:#F4F4F6;color:#6B7280' };
+                    const thisNum = rowNum;
                     marker.addListener('click', () => {
                         const rate = (window.tripData?.rate || 945) / 100;
                         const krw  = item.jpy ? Math.floor(item.jpy * rate).toLocaleString() + '원' : null;
@@ -1422,7 +1479,7 @@
                         const ts = TIME_STYLE[timeLabel] || TIME_STYLE['미정'];
                         window.sharedInfoWindow.setContent(`
                             <div class="marker-info">
-                                <span class="marker-info-time" style="${ts}">${catM.mapEmoji} ${timeLabel}</span>
+                                <span class="marker-info-time" style="${ts}">${catM.mapEmoji} ${timeLabel}${thisNum ? ` · ${thisNum}번째` : ''}</span>
                                 <div class="marker-info-name">${item.name || ''}</div>
                                 ${krw ? `<div class="marker-info-row"><span class="marker-info-jpy">¥${item.jpy}</span><span>→ ${krw}</span></div>` : ''}
                                 ${item.comment ? `<div class="marker-info-comment">"${item.comment}"</div>` : ''}
@@ -1430,12 +1487,28 @@
                         window.sharedInfoWindow.open(window.googleMap, marker);
                     });
                     window.googleMarkers.push(marker);
+                    window.markerMap[id] = marker;
                 }
             });
 
             section.appendChild(zone);
             container.appendChild(section);
         });
+
+        // 경로 폴리라인
+        if (polylinePath.length >= 2) {
+            window.routePolyline = new google.maps.Polyline({
+                path: polylinePath,
+                map: window.googleMap,
+                strokeColor: '#E8231A',
+                strokeOpacity: 0,
+                strokeWeight: 0,
+                icons: [{
+                    icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.6, strokeWeight: 2.5, strokeColor: '#E8231A', scale: 5 },
+                    offset: '0', repeat: '14px'
+                }]
+            });
+        }
 
         updateGrandTotal();
     };
@@ -1658,6 +1731,8 @@
         // 식당/카페
         { cat: '식당/카페', ko: '두 명이에요.', jp: '2人です。', pr: '후타리데스 ↘' },
         { cat: '식당/카페', ko: '메뉴판 주세요.', jp: 'メニューをください。', pr: '메뉴~오 구다사이 ↘' },
+        { cat: '식당/카페', ko: '영어 메뉴 있나요?', jp: '英語のメニューはありますか。', pr: '에이고노 메뉴~와 아리마스까 ↗' },
+        { cat: '식당/카페', ko: '영어 메뉴 주세요.', jp: '英語のメニューをください。', pr: '에이고노 메뉴~오 구다사이 ↘' },
         { cat: '식당/카페', ko: '추천 메뉴는 무엇인가요?', jp: 'おすすめは何ですか。', pr: '오스스메와 난데스까 ↗' },
         { cat: '식당/카페', ko: '생맥주 하나 주세요.', jp: '生ビール一つください。', pr: '나마비~루 히토츠 구다사이 ↘' },
         { cat: '식당/카페', ko: '저것과 똑같은 걸로 주세요.', jp: 'あれと同じものください。', pr: '아레또 오나지모노 구다사이 ↘' },
