@@ -277,7 +277,7 @@
         .place-row:last-child { border-bottom: none; }
         .item-info { flex: 1; min-width: 0; }
         .item-name { font-weight: 700; font-size: var(--fs-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-seq-badge { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
+        .item-seq-badge { flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-family: sans-serif; line-height: 1; text-align: center; vertical-align: middle; }
         .flow-seq-badge { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; color: #fff; font-size: 9px; font-weight: 800; font-family: sans-serif; margin-right: 3px; vertical-align: middle; flex-shrink: 0; }
         .item-name.clickable { display: inline-block; padding: 2px 10px; border-radius: 20px; background: #111111ab; color: #fff; border: none; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: background .15s; font-weight: 600; letter-spacing: 0.01em; }
         .item-name.clickable:hover { background: #111111cc; }
@@ -1039,7 +1039,6 @@
     };
 
     window.updateCat = (id, val) => {
-        window._editingPrice = true;
         update(ref(db, `tokyo_trip/days/${window.currentDay}/${id}`), { cat: val });
     };
 
