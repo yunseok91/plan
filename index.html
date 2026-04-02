@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>도쿄 실시간 플래너</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -315,7 +315,7 @@
            MOBILE  (< 768px)
         ════════════════════════════════ */
         @media (max-width: 767px) {
-            .page-wrapper { padding: 12px; padding-bottom: 210px; }
+            .page-wrapper { padding: 12px; padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
             .map-card { height: 330px; margin-bottom: 12px; }
             .left-controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
             .rate-row { display: flex; align-items: center; gap: 6px; background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:8px 12px; }
@@ -329,6 +329,8 @@
                 background: rgba(255,255,255,0.96); backdrop-filter: blur(10px);
                 padding: 12px 15px; box-shadow: 0 -3px 10px rgba(0,0,0,0.07);
                 z-index: 1000; display: flex; justify-content: space-between; align-items: center;
+                /* iOS 홈 인디케이터 영역 확보 */
+                padding-bottom: calc(12px + env(safe-area-inset-bottom));
             }
             .main-layout{
                 padding-top : 10px;
@@ -405,7 +407,7 @@
                 background: #F5F5F5; border-radius: 8px; padding: 8px 10px;
             }
             .pac-input-wrap { margin: 0; }
-            #pac-input { background: #F5F5F5; border: none !important; box-shadow: none !important; border-radius: 8px; font-family: var(--font-family) !important; font-size: var(--fs-base) !important; }
+            #pac-input { background: #FFF; border-radius: 8px; font-family: var(--font-family) !important; font-size: var(--fs-base) !important; }
             /* PC에서는 input/select 폰트 크기 디자인 시스템으로 복원 */
             .form-control, .form-select { font-size: var(--fs-base); }
 
@@ -630,7 +632,7 @@
         .fab-phrase    .fab-icon { background: transparent; }
         /* 모바일: 왼쪽 배치 + 아이콘 전용 원형 버튼 */
         @media (max-width: 767px) {
-            .fab-wrap { bottom: 76px; right: auto; left: 14px; gap: 8px; }
+            .fab-wrap { bottom: calc(76px + env(safe-area-inset-bottom)); right: auto; left: 14px; gap: 8px; }
             .fab-btn {
                 padding: 0;
                 width: 48px; height: 48px;
@@ -683,9 +685,8 @@
 
                 <!-- 수기 추가 -->
                 <div class="top-control-card">
-                    <div style="font-size:var(--fs-xs); color:#aaa; margin-bottom:6px; font-weight:600; letter-spacing:.3px;">✏️ 항목 직접 추가</div>
-                    <!-- 시간대 + 분류 -->
-                    <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <!-- 시간대 + 분류 (공통) -->
+                    <div style="display:flex; gap:6px; margin-bottom:8px;">
                         <select id="manual-time" class="form-select form-select-sm" style="flex:1; font-size:var(--fs-md);">
                             <option value="아침">🌅 아침</option>
                             <option value="점심" selected>☀️ 점심</option>
@@ -700,29 +701,33 @@
                             <option value="기타">📌 기타</option>
                         </select>
                     </div>
-                    <!-- 이름 + 추가 버튼 -->
-                    <div class="input-group input-group-sm mb-1">
-                        <input type="text" id="manual-name" class="form-control" placeholder="이름 입력 후 Enter" style="font-size:var(--fs-md);">
-                        <button class="btn btn-primary px-3" onclick="addManualItem()">+</button>
-                    </div>
-                    <input type="text" id="manual-comment" class="form-control form-control-sm mt-1" placeholder="💬 메모 (선택사항)" style="font-size:var(--fs-sm); border-radius:6px; color:#555; background:#fff;">
-                </div>
 
-                <!-- 장소 검색 -->
-                <div class="pac-input-wrap">
-                    <div style="font-size:var(--fs-xs); color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px; padding-left:2px;">🔍 Google 장소 검색</div>
-                    <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
-                    <!-- 핀 미리보기 확인 카드 -->
-                    <div id="place-preview" style="display:none; margin-top:8px; background:#F5F5F5; border-radius:10px; padding:10px 12px; border:1px solid #E0E0E0;">
-                        <div style="font-size:var(--fs-sm); color:#111; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
-                        <div style="font-size:var(--fs-md); font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
-                        <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:var(--fs-base); font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
-                        <div style="font-size:var(--fs-xs); color:#888; margin-bottom:8px;" id="preview-addr"></div>
-                        <div style="display:flex; gap:6px;">
-                            <button onclick="confirmAddPlace()" class="btn btn-primary btn-sm" style="flex:1; font-size:var(--fs-md);">+ 일정에 추가</button>
-                            <button onclick="cancelPreview()" class="btn btn-outline-secondary btn-sm" style="font-size:var(--fs-md);">취소</button>
+                    <!-- Google 장소 검색 -->
+                    <div style="font-size:var(--fs-xs); color:#aaa; margin-bottom:5px; font-weight:600; letter-spacing:.3px;">🔍 Google 장소 검색</div>
+                    <div class="pac-input-wrap" style="margin:0 0 4px;">
+                        <input id="pac-input" class="form-control" type="text" placeholder="방문할 장소를 검색하세요">
+                        <div id="place-preview" style="display:none; margin-top:8px; background:#F5F5F5; border-radius:10px; padding:10px 12px; border:1px solid #E0E0E0;">
+                            <div style="font-size:var(--fs-sm); color:#111; font-weight:700; margin-bottom:5px;">📍 핀 미리보기</div>
+                            <div style="font-size:var(--fs-md); font-weight:700; color:#222; margin-bottom:2px;" id="preview-name"></div>
+                            <input id="preview-name-input" type="text" placeholder="장소 이름 입력" style="display:block; width:100%; border:none; border-bottom:1px dashed #aac4f0; background:transparent; font-size:var(--fs-base); font-weight:700; color:#222; outline:none; margin-bottom:4px; padding:2px 0; font-family:inherit;">
+                            <div style="font-size:var(--fs-xs); color:#888; margin-bottom:8px;" id="preview-addr"></div>
+                            <div style="display:flex; gap:6px;">
+                                <button onclick="confirmAddPlace()" class="btn btn-primary btn-sm" style="flex:1; font-size:var(--fs-md);">+ 일정에 추가</button>
+                                <button onclick="cancelPreview()" class="btn btn-outline-secondary btn-sm" style="font-size:var(--fs-md);">취소</button>
+                            </div>
                         </div>
                     </div>
+
+                    <!-- 구분선 -->
+                    <hr style="margin:10px 0; border-color:#f0f0f0;">
+
+                    <!-- 직접 추가 -->
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+                        <span style="font-size:var(--fs-xs); color:#aaa; font-weight:600; letter-spacing:.3px; white-space:nowrap;">✏️ 직접 추가</span>
+                        <input type="text" id="manual-name" class="form-control form-control-sm" placeholder="이름 입력" style="font-size:var(--fs-md); flex:1;">
+                        <button class="btn btn-primary btn-sm px-3" onclick="addManualItem()">+</button>
+                    </div>
+                    <input type="text" id="manual-comment" class="form-control form-control-sm" placeholder="💬 메모 (선택사항)" style="font-size:var(--fs-sm); border-radius:6px; color:#555; background:#fff;">
                 </div>
             </div>
         </div>
@@ -894,6 +899,7 @@
                 document.getElementById('preview-name-input').value = place.name;
                 document.getElementById('preview-addr').textContent = place.formatted_address || '';
                 document.getElementById('place-preview').style.display = 'block';
+                setManualDisabled(true);
             });
 
             window.confirmAddPlace = () => {
@@ -903,16 +909,18 @@
                 if (!name || name === '이름 없는 장소' && !confirm('이름 없이 추가할까요?')) return;
                 const selectedTime = document.getElementById('manual-time').value;
                 const selectedCat = document.getElementById('manual-cat').value;
+                const comment = (_comment || commentEl.value).trim();
                 set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), {
                     name,
                     timeSlot: selectedTime,
                     cat: selectedCat,
                     jpy: 0,
-                    comment: "",
+                    comment,
                     order: Date.now(),
                     lat: previewPlace.geometry.location.lat(),
                     lng: previewPlace.geometry.location.lng()
                 });
+                commentEl.value = ''; _comment = '';
                 window.cancelPreview();
             };
 
@@ -922,6 +930,7 @@
                 document.getElementById('pac-input').value = '';
                 document.getElementById('place-preview').style.display = 'none';
                 document.getElementById('preview-name-input').value = '';
+                setManualDisabled(false);
             };
 
             // ── 지도 클릭 → 핀 꽂기 ──
@@ -963,6 +972,7 @@
                 document.getElementById('preview-name-input').value = '';
                 document.getElementById('preview-name').style.display = 'none';
                 document.getElementById('place-preview').style.display = 'block';
+                setManualDisabled(true);
             });
 
             renderList();
@@ -994,8 +1004,31 @@
     let _name = '', _comment = '';
     const nameEl = document.getElementById('manual-name');
     const commentEl = document.getElementById('manual-comment');
-    nameEl.addEventListener('input', e => { _name = e.target.value; });
+    const pacInputEl = document.getElementById('pac-input');
+
+    // 상호 비활성화: 이름 입력 시 장소검색 비활성, 장소검색 시 이름입력 비활성
+    function setManualDisabled(disabled) {
+        nameEl.disabled = disabled;
+        nameEl.style.opacity = disabled ? '0.4' : '';
+        nameEl.closest('.top-control-card').querySelector('.btn-primary:last-of-type') && null;
+        const addBtn = nameEl.nextElementSibling;
+        if (addBtn) { addBtn.disabled = disabled; addBtn.style.opacity = disabled ? '0.4' : ''; }
+    }
+    function setPacDisabled(disabled) {
+        pacInputEl.disabled = disabled;
+        pacInputEl.style.opacity = disabled ? '0.4' : '';
+    }
+
+    nameEl.addEventListener('input', e => {
+        _name = e.target.value;
+        setPacDisabled(e.target.value.length > 0);
+    });
     commentEl.addEventListener('input', e => { _comment = e.target.value; });
+
+    // pac-input 입력 시 직접추가 비활성
+    pacInputEl.addEventListener('input', e => {
+        setManualDisabled(e.target.value.length > 0);
+    });
 
     window.addManualItem = () => {
         const name = (_name || nameEl.value).trim();
@@ -1006,6 +1039,7 @@
         set(push(ref(db, `tokyo_trip/days/${window.currentDay}`)), { name, timeSlot, cat, jpy: 0, comment, order: Date.now() });
         nameEl.value = ''; commentEl.value = '';
         _name = ''; _comment = '';
+        setPacDisabled(false);
     };
 
     // Enter: 이름 → 메모로 포커스
