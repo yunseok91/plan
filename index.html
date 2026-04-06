@@ -367,7 +367,7 @@
                 background: #fff;
                 border-radius: 14px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-                padding: 12px 20px;
+                padding: 10px 14px 10px 20px;
                 margin-bottom: 16px;
                 font-size: 1rem;
             }
@@ -601,9 +601,10 @@
 
         /* ── 플로팅 액션 버튼 ── */
         .fab-wrap {
+            display: none;
             position: fixed;
             bottom: 24px;
-            left: 18px;
+            left: 24px;
             z-index: 1500;
             display: flex;
             flex-direction: column;
@@ -626,14 +627,24 @@
             display: flex; align-items: center; justify-content: center;
             font-size: var(--fs-xl); flex-shrink: 0;
         }
+        .title-checklist-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 13px; border-radius: 20px;
+            background: #fff; color: #111; border: 1.5px solid #E0E0E0;
+            font-size: var(--fs-sm); font-weight: 600;
+            cursor: pointer; white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+            transition: border-color .15s, background .15s;
+        }
+        .title-checklist-btn:hover { background: #F5F5F5; border-color: #bbb; }
         .fab-checklist { background: #666; color: #fff; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
         .fab-checklist .fab-icon { background: transparent; }
         .fab-phrase    { background: #666; color: #fff; border: none; box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
         .fab-phrase    .fab-icon { background: transparent; }
         /* 모바일: 왼쪽 배치 + 아이콘 전용 원형 버튼 */
         @media (max-width: 767px) {
-            .fab-wrap { bottom: calc(76px + env(safe-area-inset-bottom)); right: auto; left: 14px; gap: 8px; }
-            .fab-btn {
+            .fab-wrap { display: none; }
+            .fab-wrap .fab-btn {
                 padding: 0;
                 width: 48px; height: 48px;
                 border-radius: 50%;
@@ -653,8 +664,12 @@
 <body>
 
 <div class="page-wrapper">
-    <div class="page-title" style="text-align:center;">
+    <div class="page-title" style="display:flex; align-items:center; justify-content:space-between;">
         <h6 class="fw-bold m-0">2026년 | 🗼 도쿄 여행 계획 🐉🐏</h6>
+        <div style="display:flex; gap:8px;">
+            <button class="title-checklist-btn d-none d-md-inline-flex" onclick="openPhrasebook()">🗣️ 회화</button>
+            <button class="title-checklist-btn" onclick="openChecklist()">🎒 준비물</button>
+        </div>
     </div>
 
     <div class="main-layout">
@@ -761,15 +776,6 @@
     </div>
 </div>
 
-<!-- 플로팅 액션 버튼 -->
-<div class="fab-wrap">
-    <button class="fab-btn fab-checklist" onclick="openChecklist()">
-        <span class="fab-icon">🎒</span>준비물
-    </button>
-    <button class="fab-btn fab-phrase" onclick="openPhrasebook()">
-        <span class="fab-icon">🗣️</span>회화
-    </button>
-</div>
 
 <!-- 날짜 이동 팝업 -->
 <div class="day-picker-popup" id="day-picker-popup">
@@ -817,8 +823,11 @@
 
 <!-- 모바일 전용 고정 푸터 (PC에서는 display:none) -->
 <div class="footer-total d-md-none" id="mobile-footer">
-    <span style="font-size:var(--fs-sm); color:#666;">총액</span>
-    <span class="total-amount" id="grand-total-mobile">¥0 (0원)</span>
+    <button class="title-checklist-btn" onclick="openPhrasebook()" style="flex-shrink:0;">🗣️ 회화</button>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:1px; min-width:0;">
+        <span style="font-size:var(--fs-xs); color:#888;">총액</span>
+        <span class="total-amount" id="grand-total-mobile" style="font-size:var(--fs-xl); white-space:nowrap;">¥0 (0원)</span>
+    </div>
 </div>
 
 <script type="module">
